@@ -5,22 +5,21 @@
 CC=gcc
 CFLAGS=-std=c11
 
-STAMP="$(src)_$N"
-NCOLS=4
+STAMP="$(src)_$M_$N"
 
-all: $(src) run pdf
+all: $(src) run
 
 $(src): $(src).c
 	mkdir -p obj
 	$(CC) $< $(CFLAGS) -o obj/$(src).out
 
-pdf: raw/$(src)_$N 
+pdf: raw/$(STAMP)
 	mkdir -p tex
 	mkdir -p pdf 
 	chmod +x out2tex.sh
-	./out2tex.sh $(NCOLS) < raw/$(STAMP) > tex/$(STAMP).tex
+	./out2tex.sh < raw/$(STAMP) > tex/$(STAMP).tex
 	latexmk -pdf -auxdir="pdf/$(STAMP)" -outdir="pdf/$(STAMP)" tex/$(STAMP).tex
 
 run: obj/$(src).out
 	mkdir -p raw 
-	./obj/$(src).out $N > raw/$(STAMP)
+	./obj/$(src).out $M $N > raw/$(STAMP)

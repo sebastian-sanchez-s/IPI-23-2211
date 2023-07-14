@@ -5,7 +5,7 @@
 echo "\\documentclass{article}"
 echo "\\usepackage{multicol}"
 echo "\\begin{document}"
-echo "\\begin{multicols}{$1}"
+echo "\\begin{multicols}{4}"
 
 while read -r line
 do
