@@ -1,0 +1,6 @@
+papers/
+**/*.out
+**/obj/
+**/tex/
+**/raw/
+**/pdf/
