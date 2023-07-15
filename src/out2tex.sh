@@ -5,39 +5,34 @@
 echo "\\documentclass{article}"
 echo "\\usepackage{multicol}"
 echo "\\begin{document}"
-echo "\\begin{multicols}{4}"
+echo "\\begin{multicols}{$1}"
+echo "\\noindent"
 
+LINECOUNT=0
 while read -r line
 do
-    nsq=$(echo $line | tr ',' ' ' | wc -w)
-    n=$(echo "sqrt($nsq)" | bc)
-    echo "\\begin{displaymath}"
-    echo -n "\\begin{array}{"
+    n=$(echo $line | cut -d';' -f1 | tr ',' ' ' | wc -w)
+    echo -n "\\begin{tabular}{"
     up2n=$(seq 1 $n)
     for i in $up2n
     do
         echo -n "|c"
     done
     echo "|}"
-    nlc=0 #newlinecounter
     for (( i=0; i<=${#line}; i++ ))
     do
         c=${line:$i:1}
-        if [[ "$c" == "," ]]; then
-            ((nlc++))
-            if [[ $(($nlc % $n)) -eq 0 ]]; then
-                echo "\\\\"
-            else
-                echo -n "&"
-            fi
-        else
-            echo -n $c
-        fi
+        case $c in
+            [0-9]) echo -n $c ;;
+            ',') echo -n "&" ;;
+            ';') echo "\\\\" ;;
+        esac
     done
-    echo ""
-    echo "\\end{array}"
-    echo "\\end{displaymath}"
+    echo "\\\\\\hline"
+    echo "\\end{tabular}"
+    ((LINECOUNT++))
 done
 
 echo "\\end{multicols}"
+echo "TOTAL: "$LINECOUNT
 echo "\\end{document}"

@@ -5,7 +5,9 @@
 CC=gcc
 CFLAGS=-std=c11
 
-STAMP="$(src)_$M_$N"
+STAMP=$(src)_$M_$N
+
+NCOLSTEX=5
 
 all: $(src) run
 
@@ -17,8 +19,8 @@ pdf: raw/$(STAMP)
 	mkdir -p tex
 	mkdir -p pdf 
 	chmod +x out2tex.sh
-	./out2tex.sh < raw/$(STAMP) > tex/$(STAMP).tex
-	latexmk -pdf -auxdir="pdf/$(STAMP)" -outdir="pdf/$(STAMP)" tex/$(STAMP).tex
+	./out2tex.sh $(NCOLSTEX) < raw/$(STAMP) > tex/$(STAMP).tex
+	latexmk -quiet -pdf -auxdir="pdf/$(STAMP)" -outdir="pdf/$(STAMP)" tex/$(STAMP).tex
 
 run: obj/$(src).out
 	mkdir -p raw 

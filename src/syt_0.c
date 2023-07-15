@@ -13,10 +13,11 @@
 #define DEBUG 0
 #define ON_DEBUG(s) if(DEBUG) { s }
 
-#define PRINT_ARRAY(output, arr, beg, end){\
+#define PRINT_ARRAY(output, arr, beg, end, m){\
     for (int j = beg; j < end; j++)\
     {\
-        fprintf(output, "%i,", arr[j]);\
+        char c = ((j+1)%m == 0) ? ';': ',';\
+        fprintf(output, "%i%c", arr[j], c);\
     }\
     fprintf(output, "%i", arr[end]);}
 
@@ -61,7 +62,7 @@ int main(int argc, char* argv[])
         if (i == sz-1)
         {
             ON_DEBUG(fprintf(stdout, "\n>> "););
-            PRINT_ARRAY(stdout, arr, 0, sz-1);
+            PRINT_ARRAY(stdout, arr, 0, sz-1, m);
             putchar('\n');
             i -= 1;
         }
@@ -70,11 +71,11 @@ int main(int argc, char* argv[])
         int t = arr[i] > 0 ? arr[i]: min[i];
 
         ON_DEBUG(fprintf(stderr, "\n%2i. arr  : ", i););
-        ON_DEBUG(PRINT_ARRAY(stderr, arr, 0, sz-1););
+        ON_DEBUG(PRINT_ARRAY(stderr, arr, 0, sz-1, m););
         ON_DEBUG(fprintf(stderr, "\n%2i. taken: ", i););
-        ON_DEBUG(PRINT_ARRAY(stderr, taken, 1, sz-1););
+        ON_DEBUG(PRINT_ARRAY(stderr, taken, 1, sz-1, m););
         ON_DEBUG(fprintf(stderr, "\n%2i. max  : ", i););
-        ON_DEBUG(PRINT_ARRAY(stderr, max, 0, sz-1););
+        ON_DEBUG(PRINT_ARRAY(stderr, max, 0, sz-1, m););
 
         // Find first available number (must be in limits, not be taken and be valid)
         while (t <= imax && (taken[t] || BAD_NEIGHBORS(t,arr,i,m))) 
