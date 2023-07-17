@@ -1,11 +1,12 @@
 # Commandline arguments:
-# src = filename to compile without .c
-# N   = number to pass to src
+# M = NCOLS
+# N = NROWS
+src=syt0
 
 CC=gcc
-CFLAGS=-std=c11
+CFLAGS=-Wall -Werror -g -std=c11
 
-STAMP=$(src)_$M_$N
+STAMP=$M_$N
 
 NCOLSTEX=5
 
@@ -18,8 +19,8 @@ $(src): $(src).c
 pdf: raw/$(STAMP)
 	mkdir -p tex
 	mkdir -p pdf 
-	chmod +x out2tex.sh
-	./out2tex.sh $(NCOLSTEX) < raw/$(STAMP) > tex/$(STAMP).tex
+	chmod +x ./../csv2tex.sh
+	./../csv2tex.sh $(NCOLSTEX) < ./raw/$(STAMP) > ./tex/$(STAMP).tex
 	latexmk -quiet -pdf -auxdir="pdf/$(STAMP)" -outdir="pdf/$(STAMP)" tex/$(STAMP).tex
 
 run: obj/$(src).out
