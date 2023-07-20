@@ -33,11 +33,12 @@ do
             perf_file=$rootdir"/m"$m"n"$n
 
             if [[ ! -f "$perf_file" ]]; then
-                3>$perf_file perf stat --null -r 5 --log-fd 3 obj/$name.out $m $n >/dev/null
+                3>$perf_file perf stat --null -r $SAMPLES --log-fd 3 obj/$name.out $m $n >/dev/null
+                echo $(tail -2 $perf_file | head) > $perf_file
             fi
 
             echo " [DONE]" 
-            echo $(tail -2 $perf_file | head)
+            cat $perf_file
 
             rm -f raw/*
         done
