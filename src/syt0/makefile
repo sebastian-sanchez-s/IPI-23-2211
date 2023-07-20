@@ -4,7 +4,7 @@
 src=syt0
 
 CC=gcc
-CFLAGS=-Wall -Werror -g -std=c11
+CFLAGS=-Wall -Werror -std=c11
 
 STAMP=$M_$N
 
