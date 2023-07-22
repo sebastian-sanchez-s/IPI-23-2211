@@ -2,12 +2,11 @@
 
 SRC=syt
 SAMPLES=5
-THRESHOLD=22
 
 echo "Benchmark for StandardYoungTableux Computation."
 echo "Samples per case: "$SAMPLES
-echo "Threshold       : "$THRESHOLD
 
+CASES="3x3 4x4 3x5 4x5"
 for i in {0..1}
 do
     name=$SRC$i
@@ -19,30 +18,26 @@ do
 
     cd $name
 
-    for m in {3..7}
+    for c in $CASES
     do
-        for n in {3..7}
-        do
-            perm=$(echo "$m*$n" | bc)
-            if [[ $perm -gt $THRESHOLD ]]; then
-                continue
-            fi
+        echo -n "Case $c" 
 
-            echo -n "- Case "$m"x"$n
+        m=$(echo $c | cut -d"x" -f1)
+        n=$(echo $c | cut -d"x" -f2)
 
-            perf_file=$rootdir"/m"$m"n"$n
+        perf_file=$rootdir"/m"$m"n"$n
+        if [[ ! -f "$perf_file" ]]; then
+            make $name >/dev/null
+            mkdir -p raw
+            3>$perf_file perf stat --null -r $SAMPLES --log-fd 3 obj/$name.out $m $n >/dev/null
+            echo $(tail -2 $perf_file | head) > $perf_file
+        fi
 
-            if [[ ! -f "$perf_file" ]]; then
-                3>$perf_file perf stat --null -r $SAMPLES --log-fd 3 obj/$name.out $m $n >/dev/null
-                echo $(tail -2 $perf_file | head) > $perf_file
-            fi
+        echo " [DONE]" 
+        cat $perf_file
 
-            echo " [DONE]" 
-            cat $perf_file
-
-            rm -f raw/*
-        done
-    done 
+        rm -f raw/*
+    done
 
     cd ..
 done
