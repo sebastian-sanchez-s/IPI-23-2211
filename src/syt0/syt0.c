@@ -30,6 +30,11 @@ int main(int argc, char* argv[])
     int max[sz];
     int taken[sz + 1];
 
+    char filename[50];
+    sprintf(filename, "raw/m%in%i", m, n);
+    FILE* fd;
+    open_or_exit(fd, filename, "w", -1);
+
     /*
      * Fill arrays with:
      * arr  : minimal configuration
@@ -60,7 +65,7 @@ int main(int argc, char* argv[])
     {
         if (i == sz-1)
         {
-            PRINT_ARRAY(stdout, arr, 0, sz-1, m);
+            PRINT_ARRAY(fd, arr, 0, sz-1, m);
             i -= 1;
         }
 
@@ -95,5 +100,6 @@ int main(int argc, char* argv[])
         }
     }
 
+    fclose(fd);
     return 0;
 }

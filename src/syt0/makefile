@@ -25,4 +25,4 @@ pdf: raw/$(STAMP)
 
 run: obj/$(src).out
 	mkdir -p raw 
-	./obj/$(src).out $M $N > raw/$(STAMP)
+	./obj/$(src).out $M $N

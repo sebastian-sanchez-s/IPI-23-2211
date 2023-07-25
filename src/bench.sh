@@ -29,7 +29,7 @@ do
         if [[ ! -f "$perf_file" ]]; then
             make $name >/dev/null
             mkdir -p raw
-            3>$perf_file perf stat --null -r $SAMPLES --log-fd 3 obj/$name.out $m $n >/dev/null
+            3>$perf_file perf stat --null -r $SAMPLES --log-fd 3 obj/$name.out $m $n
             echo $(tail -2 $perf_file | head) > $perf_file
         fi
 

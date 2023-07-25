@@ -20,18 +20,18 @@ do
     # Run syt0
     cd $EO
     make M=$m N=$n > /dev/null
-    sort -o raw/$m"_"$n{,}
+    sort -o raw/m$m"n"$n{,}
     cd ..
     
     # Run TO 
     cd $TO
     make M=$m N=$n > /dev/null
-    cat raw/m$m"_n"$n"_s"* | sort > raw/m$m"_n"$n
-    rm raw/m$m"_n"$n"_s"*
+    cat "raw/m"$m"n"$n"s"* | sort > "raw/m"$m"n"$n
+    rm "raw/m"$m"n"$n"s"*
     cd ..
 
     # Compare
-    if [[ -z $(diff -w -q $EO/raw/$m"_"$n $TO/raw/m$m"_n"$n) ]]
+    if [[ -z $(diff -w -q $EO"/raw/m"$m"n"$n $TO"/raw/m"$m"n"$n) ]]
     then
         echo " [PASSED]."
     else
@@ -40,7 +40,6 @@ do
 
     if [[ $deleteraw == "y" ]]
     then
-        rm $EO/raw/$m"_"$n
-        rm $TO/raw/m$m"_n"$n
+        rm {$TO,$EO}/raw/*
     fi
 done

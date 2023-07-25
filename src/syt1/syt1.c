@@ -38,8 +38,8 @@ int main(int argc, char* argv[])
     /*
      * Compute min and max
      * */
-    malloc_or_exit(min, sz*sizeof(*min));
-    malloc_or_exit(max, sz*sizeof(*max));
+    malloc_or_exit(min, sz*sizeof(*min), -1);
+    malloc_or_exit(max, sz*sizeof(*max), -1);
 
     for (u8 r = 0, i = 0; r < n; r++)
     {
@@ -97,8 +97,9 @@ void* compute_tableux(void* arg)
      * File to write output.
      * */
     char filename[50];
-    sprintf(filename, RAWDIRFMT, m, n, seed);
-    FILE* fd = fopen(filename, "w");
+    sprintf(filename, "raw/m%in%is%i", m, n, seed);
+    FILE* fd;
+    open_or_exit(fd, filename, "w", NULL);
 
     /*
      * Fill table with minimal configuration.
@@ -155,6 +156,5 @@ void* compute_tableux(void* arg)
     }
 
     fclose(fd);
-
     return NULL;
 }

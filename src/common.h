@@ -43,10 +43,10 @@ typedef uint32_t u32;
     }\
     fprintf(fd, "%i\n", A[end]);}
 
-#define malloc_or_exit(ptr, sz) do {\
+#define malloc_or_exit(ptr, sz, r) do {\
     ptr = malloc(sz);\
     if(ptr==NULL)\
-    { fprintf(stderr, "\nFailed to allocate memory."); return -1; }\
+    { fprintf(stderr, "\nFailed to allocate memory."); return r; }\
     } while(0)
 
 /*
@@ -57,6 +57,10 @@ typedef uint32_t u32;
 /*
  * File Utilities
  * */
-#define RAWDIRFMT "raw/m%i_n%i_s%i"
+#define open_or_exit(fd, filename, mode, r) do {\
+    fd = fopen(filename, mode);\
+    if (fd==NULL)\
+    { fprintf(stderr, "\n"); return r; }\
+    } while(0)
 
 #endif
