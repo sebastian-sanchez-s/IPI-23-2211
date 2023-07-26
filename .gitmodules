@@ -1,0 +1,3 @@
+[submodule "src/cddlib"]
+	path = cddlib
+	url = git@github.com:cddlib/cddlib.git
