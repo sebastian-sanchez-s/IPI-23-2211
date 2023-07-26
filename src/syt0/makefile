@@ -6,7 +6,7 @@ src=syt0
 CC=gcc
 CFLAGS=-Wall -Werror -std=c11
 
-STAMP=$M_$N
+STAMP=m$Mn$N
 
 NCOLSTEX=5
 
