@@ -6,7 +6,7 @@ mkdir -p $ROOTDIR
 echo "Benchmark for StandardYoungTableux Computation."
 echo "Samples per case: "$SAMPLES
 
-CASES="3x5 4x5"
+CASES="3x4 3x6 4x5"
 
 for c in $CASES
 do
