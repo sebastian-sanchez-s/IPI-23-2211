@@ -8,6 +8,8 @@ echo "Samples per case: "$SAMPLES
 
 CASES="3x4 3x6 4x5"
 
+make 2&>/dev/null
+
 for c in $CASES
 do
     echo -n "Case $c" 
