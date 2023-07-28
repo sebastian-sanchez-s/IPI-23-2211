@@ -16,38 +16,39 @@ hacia abajo.
 
 #### Uso
 
-Dentro del directorio `src/syt<K>/` ingrese los siguiente comandos para:
-
-Compilar `sy<K>.c`:
+Compilar:
 ```sh
-make syt<K>
+make
 ```
-> Este comando crea el directorio `obj` con los ejecutables dentro.
+> Este comando crea el directorio `obj` con el ejecutable dentro.
 
 Ejecutar:
 ```sh
-make run M=<nro_columnas> N=<nro_filas>
+make run NCOL=<nro_columnas> NROW=<nro_filas>
 ```
 > Este comando crea el directorio `raw` con los datos dentro.
 
 Compilar y ejecutar:
 ```sh
-make all M=<nro_columnas> N=<nro_filas>
+make all NCOL=<nro_columnas> NROW=<nro_filas>
 ```
 
 Crear archivo pdf (de ser posible)
 ```sh
-make pdf M=<nro_columnas> N=<nro_filas>
+make pdf NCOL=<nro_columnas> NROW=<nro_filas>
 ```
+> Este comando crea el directorio `tex` y `pdf`.
 
-Ejemplo de la organización del directorio `src/syt<K>`.
+Ejemplo de la organización del directorio.
 ```
-src
-|-- sytK.c
+ROOT
+|-- main.c
+|-- syt.c
 |-- makefile
-|-- obj
-|-- pdf
-|-- raw
-|-- tex
+|-- obj/
+|-- pdf/
+|-- raw/
+|-- tex/
+|-- (...)
 ```
 

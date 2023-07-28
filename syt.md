@@ -1,6 +1,3 @@
-
-### syt0: Fuerza Bruta (Bottom-Up)
-
 #### Algoritmo
 
 El método consiste en partir de la configuración
