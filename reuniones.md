@@ -34,5 +34,7 @@ Algunas de estas son redundantes! pero para que sea mas uniforme las ponemos tod
 
 *OJO*: las desigualdades deben ser estrictas, si fueran simplemente menor o igual se podria poner todo igual a cero.
 
+# Viernes 28 de Julio
 
+Quedamos en construir las desigualdades y terminar de implementar las cosas de cdd.
  

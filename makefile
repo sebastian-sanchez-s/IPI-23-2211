@@ -1,15 +1,26 @@
+# Flags
 CC=gcc
-WFLAGS=-Wall -Werror -Wpedantic
-CFLAGS=-std=c11 -pthread -O2
+WF=-Wall -Werror -Wpedantic
+CF=-std=c11 -g -O2
+LD=-I./cddlib/lib-src/ -L./cddlib/lib-src/.libs/ -pthread -lcdd
 
+# Output organization
 NCOLTEX=5
 STAMP=m$(NCOL)n$(NROW)
 
-main: main.c syt.c
+main: $(addprefix obj/,main.o syt.o)
+	$(CC) $(CF) $(WF) $^ $(LD) -o obj/a.out
+
+obj/syt.o: syt.c
 	mkdir -p obj
-	$(CC) syt.c $(CFLAGS) -c -o obj/syt.o
-	$(CC) main.c $(CFLAGS) -c -o obj/main.o
-	$(CC) obj/main.o obj/syt.o -o obj/a.out
+	$(CC) $(CF) $(WF) -I./cddlib/lib-src/ $< -c -o obj/$(basename $<).o
+
+obj/main.o: main.c
+	mkdir -p obj
+	$(CC) $(CF) $(WF) $< -c -o obj/$(basename $<).o
+
+cleanobj: obj/
+	rm obj/*
 
 run: obj/a.out
 	mkdir -p raw

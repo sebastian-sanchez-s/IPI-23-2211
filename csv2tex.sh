@@ -26,6 +26,7 @@ do
             [0-9]) echo -n $c ;;
             ',') echo -n "&" ;;
             ';') echo "\\\\" ;;
+            *) break;;
         esac
     done
     echo "\\\\\\hline"

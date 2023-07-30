@@ -1,54 +1,57 @@
 /* ==============================
  *      INCLUDES
  * ==============================*/
-#include "common.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdint.h>
+#include <string.h>
 #include <pthread.h>
+
+#include "setoper.h"
+#include "cdd.h"
 #include "syt.h"
 
-/* =============================
- *      FUNCTION-LIKE MACROS
- * =============================*/
-#define BAD_NEIGHBORS(t,A,i,m) ((m<i && A[i-m]>=t) || (i%m>0 && A[i-1]>=t))
-#define PRINT_ARRAY(fd, A, beg, end, m){\
-    for (int j = beg; j < end; j++)\
-    {\
-        char c = ((j+1)%m == 0) ? ';': ',';\
-        fprintf(fd, "%i%c", A[j], c);\
-    }\
-    fprintf(fd, "%i\n", A[end]);}
 
 /* ==================================
  *      PROTOTYPES and DATA TYPES 
  * ==================================*/
-typedef struct {
+struct worker_param_t {
     int thread_id;
     union {
         int seed;
-        int *A;
+        struct {
+            int *arr;
+            int *rank;
+        };
     };
-} worker_param_t;
+};
 
 void* syt_worker_compute(void *params);
 void* syt_worker_solvelp(void *params);
 
-
 /* ==============================
  *      GLOBAL DATA
  * ==============================*/
+
+// TODO: thread pool
+#define MAXTHREADS 8
+static struct {
+    FILE *f[MAXTHREADS];
+    pthread_t t[MAXTHREADS];
+    struct worker_param_t p[MAXTHREADS];
+} thread_pool;
 
 static int nrow, ncol, sz;
 static int *min, *max;
 
 static int *A_pool; // Array of tableau
 static int *T_pool; // Array of taken markers
+static int *R_pool; // Array of taken markers
 
-// TODO: thread pool
-static struct {
-    pthread_t t[MAXTHREADS];
-} thread_pool;
 
 /* =======================
- *      IMPLEMENTATION
+ *      IMPLEMENTATION (big functions)
  * =======================*/
 
 int syt_compute(int ncols, int nrows) 
@@ -70,6 +73,8 @@ int syt_compute(int ncols, int nrows)
     //
     // Initialization
     //
+    dd_set_global_constants();
+
     ncol = ncols;
     nrow = nrows;
     sz = ncol*nrow;
@@ -77,16 +82,11 @@ int syt_compute(int ncols, int nrows)
     //
     // Compute min and max
     //
-    #ifndef CALLBACK
-    #define CALLBACK { return -1; }
-    malloc_or(min, sz*sizeof(*min), CALLBACK);
-    malloc_or(max, sz*sizeof(*max), CALLBACK);
-    malloc_or(A_pool, MAXTHREADS*sz*sizeof(*A_pool), CALLBACK);
-    malloc_or(T_pool, MAXTHREADS*(sz+1)*sizeof(*T_pool), CALLBACK);
-    #undef CALLBACK
-    #else
-    #error "CALLBACK macro is already defined."
-    #endif
+    min = malloc(sizeof(int[sz]));
+    max = malloc(sizeof(int[sz]));
+    A_pool = calloc(1, sizeof(int[MAXTHREADS][sz]));
+    T_pool = calloc(1, sizeof(int[MAXTHREADS][sz+1]));
+    R_pool = calloc(1, sizeof(int[MAXTHREADS][sz+1]));
 
     for (int r = 0, i = 0; r < nrow; r++)
     {
@@ -101,13 +101,18 @@ int syt_compute(int ncols, int nrows)
     // Launch Threads
     //
     int nthreads = nrow > MAXTHREADS ? MAXTHREADS: nrow;
-    worker_param_t params[nthreads];
 
     for (int i = 0; i < nthreads; i++)
     {
-        params[i].thread_id = i;
-        params[i].seed = i+2;
-        pthread_create(&thread_pool.t[i], NULL, syt_worker_compute, &params[i]);
+        thread_pool.p[i].thread_id = i;
+        thread_pool.p[i].seed = i+2;
+
+        char filename[50];
+        sprintf(filename, "raw/m%in%it%i", ncol, nrow, thread_pool.p[i].thread_id);
+        thread_pool.f[i] = fopen(filename, "w");
+        if (thread_pool.f[i] == NULL) goto FREE_GLOBALS;
+
+        pthread_create(&thread_pool.t[i], NULL, syt_worker_compute, &thread_pool.p[i]);
     }
 
     //
@@ -116,13 +121,24 @@ int syt_compute(int ncols, int nrows)
     for (int i = 0; i < nthreads; i++)
     {
         pthread_join(thread_pool.t[i], NULL);
+        fclose(thread_pool.f[i]);
     }
 
+FREE_GLOBALS:
     free(min);
     free(max);
     free(A_pool);
     free(T_pool);
+    free(R_pool);
+    dd_free_global_constants();
     return 0;
+}
+
+static inline int bad_neighbors(int value, int *arr, int i, int ncol)
+{
+    int up = (ncol<i && arr[i-ncol] >= value);
+    int left = (i%ncol>0 && arr[i-1] >= value);
+    return up || left;
 }
 
 void* syt_worker_compute(void* params)
@@ -131,12 +147,12 @@ void* syt_worker_compute(void* params)
     //
     // Gather and initialize data.
     //
-    worker_param_t param = *(worker_param_t*) params;
+    struct worker_param_t param = *(struct worker_param_t*) params;
 
     int offset = param.thread_id * sz;
     int *arr = &A_pool[offset];
     int *taken = &T_pool[offset];
-    for (int k=0; k < sz+1; k++) { taken[k] = 0; }
+    int *rank = &R_pool[offset];
 
     arr[0] = 1;
     arr[1] = param.seed;
@@ -146,13 +162,9 @@ void* syt_worker_compute(void* params)
     taken[param.seed] = 1;
     taken[sz] = 1;
 
-    //
-    // File to write output.
-    //
-    char filename[50];
-    sprintf(filename, "raw/m%in%it%i", ncol, nrow, param.thread_id);
-    FILE* fd;
-    open_or(fd, filename, "w", { return NULL; });
+    rank[1] = 0;
+    rank[param.seed] = 1;
+    rank[sz] = sz-1;
 
     //
     // Fill table with minimal configuration.
@@ -161,7 +173,7 @@ void* syt_worker_compute(void* params)
     int t = min[i];
     int imax = max[i];
     do {
-        if (taken[t] || BAD_NEIGHBORS(t, arr, i, ncol))
+        if (taken[t] || bad_neighbors(t, arr, i, ncol))
         {
             t++;
         }
@@ -169,6 +181,7 @@ void* syt_worker_compute(void* params)
         {
             arr[i] = t;
             taken[t] = 1;
+            rank[t] = i;
             i += 1;
             t = min[i];
             imax = max[i];
@@ -183,14 +196,30 @@ void* syt_worker_compute(void* params)
     {
         if (i == sz-1)
         {
-            PRINT_ARRAY(fd, arr, 0, sz-1, ncol);
+            //
+            // Launch solver thread
+            //
+            struct worker_param_t *sparams;
+
+            sparams = malloc(sizeof(struct worker_param_t));
+
+            sparams->thread_id = param.thread_id;
+
+            sparams->arr = malloc(sz*sizeof(int));
+            memcpy(sparams->arr, arr, sz*sizeof(int));
+
+            sparams->rank = malloc((sz+1)*sizeof(int));
+            memcpy(sparams->rank, rank, (sz+1)*sizeof(int));
+
+            syt_worker_solvelp((void*) sparams);
+
             i -= 1;
         }
 
         imax = max[i];
         t = arr[i] > 0 ? arr[i]: min[i];
 
-        while (t <= imax && (taken[t] || BAD_NEIGHBORS(t, arr, i, ncol)))
+        while (t <= imax && (taken[t] || bad_neighbors(t, arr, i, ncol)))
         {
             t++;
         }
@@ -205,10 +234,150 @@ void* syt_worker_compute(void* params)
         {
             arr[i] = t;
             taken[t] = 1;
+            rank[t] = i;
             i += 1;
         }
     }
 
-    fclose(fd);
+    return NULL;
+}
+
+void* syt_worker_solvelp(void *params)
+/* Build inequalities from tableau and solves the lp with cdd */
+{
+    struct worker_param_t *param  = (struct worker_param_t*) params;
+    int *arr = param->arr;
+    int *rank = param->rank;
+    FILE *fd = thread_pool.f[param->thread_id];
+
+    //
+    // Build LP problem
+    //
+    #define NUM_INE_TABLEAU (sz-1)
+    #define NUM_INE_ORDER_X (nrow-1)
+    #define NUM_INE_ORDER_Y (ncol-1)
+    #define NUM_INE_LT_ONE (ncol + nrow)
+    #define NUM_INE_GT_ZERO (ncol + nrow+1)
+    #define NUM_INE_TOTAL (NUM_INE_TABLEAU + NUM_INE_ORDER_X + NUM_INE_ORDER_Y + NUM_INE_LT_ONE + NUM_INE_GT_ZERO) 
+    #define NUM_VAR (ncol + nrow)
+
+    dd_MatrixPtr A = dd_CreateMatrix(NUM_INE_TOTAL, 1 + NUM_VAR + 1); // 2 more for epsilon and constant 
+
+    //
+    // Build inequalities
+    //
+    int offset = 0;
+    for (int k = 1; k <= NUM_INE_TABLEAU; k++)
+    /* For every rank k: 0<= -y_col(k) - x_row(k) - epsilon + y_col(k+1) + x_row(k+1). */
+    {
+        // y variables starts after x variables .ie. at index nrow+1
+        int y_col_k = (rank[k]%ncol) + nrow+1;
+        int x_row_k = (rank[k]/ncol) + 1;
+        int y_col_kp1 = (rank[k+1]%ncol) + nrow+1;
+        int x_row_kp1 = (rank[k+1]/ncol) + 1;
+        
+        // If same variables appears on both sides, it gets cancel out
+        int x_coeff = (x_row_k == x_row_kp1) ? 0: 1;
+        int y_coeff = (y_col_k == y_col_kp1) ? 0: 1;
+
+        dd_set_si(A->matrix[k-1][y_col_k], -y_coeff);
+        dd_set_si(A->matrix[k-1][x_row_k], -x_coeff);
+        dd_set_si(A->matrix[k-1][NUM_VAR+1], -1); // Epsilon
+        dd_set_si(A->matrix[k-1][y_col_kp1], y_coeff);
+        dd_set_si(A->matrix[k-1][x_row_kp1], x_coeff);
+    }
+
+    offset += NUM_INE_TABLEAU;
+    for (int k = 1; k <= NUM_INE_ORDER_X; k++)
+    /* 0 <= -x_k -epsilon + x_{k+1} */
+    {
+        dd_set_si(A->matrix[k-1 + offset][k], -1); 
+        dd_set_si(A->matrix[k-1 + offset][NUM_VAR+1], -1);
+        dd_set_si(A->matrix[k-1 + offset][k+1], 1);
+    }
+
+    offset += NUM_INE_ORDER_X;
+    for (int k = 1; k <= NUM_INE_ORDER_Y; k++)
+    /* 0<= -y_k - epsilon + y_{k+1} */
+    {
+        dd_set_si(A->matrix[k-1 + offset][ncol+k-1], -1); 
+        dd_set_si(A->matrix[k-1 + offset][NUM_VAR+1], -1);
+        dd_set_si(A->matrix[k-1 + offset][ncol+k], 1);
+    }
+
+    offset += NUM_INE_ORDER_Y;
+    for (int k = 1; k <= NUM_INE_LT_ONE; k++)
+    /* 0 <= -x_k + 1, 0 <= -y_k + 1*/
+    {
+        dd_set_si(A->matrix[k-1 + offset][k], -1); 
+        dd_set_si(A->matrix[k-1 + offset][0], 1);
+    }
+
+    offset += NUM_INE_LT_ONE;
+    for (int k = 1; k <= NUM_INE_GT_ZERO; k++)
+    /* 0 <= x_k, 0 <= y_k */
+    {
+        dd_set_si(A->matrix[k-1 + offset][k], 1); 
+    }
+
+    dd_set_si(A->rowvec[NUM_VAR+1], 1); // Objective function
+
+    //
+    // Set LP and Solve 
+    //
+    A->objective = dd_LPmax;
+    dd_ErrorType error=dd_NoError;
+    dd_LPPtr lp = dd_Matrix2LP(A, &error);
+
+    dd_LPSolverType solver = dd_DualSimplex;
+    dd_LPSolve(lp, solver, &error);
+
+    //
+    // Output results
+    //
+    if (*lp->optvalue > dd_almostzero) {
+        //
+        // Print table
+        //
+        for (int j = 0; j < sz-1; j++)
+        {
+            char c = ((j+1)%ncol == 0) ? ';': ',';
+            fprintf(fd, "%i%c", arr[j], c);
+        }
+        fprintf(fd, "%i", arr[sz-1]);
+
+        //
+        // Print x (vertical) vector
+        //
+        fprintf(fd, " %lf", *lp->sol[1]);
+        for (int j=2; j<=nrow; j++) 
+        {
+            fprintf(fd, ",");
+            fprintf(fd, "%lf", *lp->sol[j]);
+        }
+
+        //
+        // Print y (horizontal) vector
+        //
+        fprintf(fd, " %lf", *lp->sol[nrow+1]);
+        for (int j=2; j<=ncol; j++) 
+        {
+            fprintf(fd, ",");
+            fprintf(fd, "%lf", *lp->sol[nrow+j]);
+        }
+
+        //
+        // Print optimal value
+        //
+        fprintf(fd, " %lf", *lp->optvalue);
+        fprintf(fd,"\n");
+    }
+
+    dd_FreeLPData(lp);
+    dd_FreeMatrix(A);
+
+    free(arr);
+    free(rank);
+    free(params);
     return NULL;
 }
