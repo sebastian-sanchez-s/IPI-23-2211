@@ -17,6 +17,7 @@ do
     m=$(echo $c | cut -d"x" -f1)
     n=$(echo $c | cut -d"x" -f2)
 
+    # date -d @$(date -u +%s) +'%H:%m-%d/%m/%Y'
     perf_file=$ROOTDIR"m"$m"n"$n
     if [[ ! -f "$perf_file" ]]; then
         mkdir -p raw
