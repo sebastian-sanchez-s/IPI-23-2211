@@ -28,5 +28,5 @@ do
     echo " [DONE]" 
     cat $perf_file
 
-    rm -f raw/*
+    #rm -f raw/*
 done
