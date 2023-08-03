@@ -19,12 +19,6 @@ sumas exteriores.
 
 #### Uso
 
-En linux (y probablemente en mac) hay que agregar las librerías
-de cdd la ruta del _linker_.
-```sh
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/cddlib/lib-src/.libs/ 
-```
-
 Compilar:
 ```sh
 make
@@ -47,14 +41,16 @@ Ejemplo de la organización del directorio.
 ```
 ./IPI-23-2211
 |-- main.c
-|-- syt.c
-|-- syt.h
+|-- consumer.{h,c}
+|-- producer.{h,c}
+|-- queue.{h,c}
+|-- qsopt.h
+|-- libqsopt.a
 |-- makefile
 |-- obj/
 |-- pdf/
 |-- raw/
 |-- tex/
-|-- cddlib/
 |-- (scripts y otros archivos) 
 ```
 
