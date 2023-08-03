@@ -2,7 +2,7 @@
 CC=gcc
 WF=-Wall -Werror -Wpedantic
 CF=-std=c11 -g -funroll-loops -O2 -fpic
-LD=-L. -pthread -lqsopt -lm
+LD=-L. -I./cddlib/lib-src/ -L./cddlib/lib-src/.libs/ -pthread -lqsopt -lcdd -lm
 
 SRCS=$(wildcard *.c)
 
@@ -15,7 +15,7 @@ all: $(patsubst %.c,obj/%.o,$(SRCS))
 
 obj/%.o: %.c
 	mkdir -p obj
-	$(CC) $(CF) $(WF) $< -c -o obj/$(basename $<).o
+	$(CC) $(CF) $(WF) -I./cddlib/lib-src/ $< -c -o obj/$(basename $<).o
 
 cleanobj: obj/
 	rm obj/*

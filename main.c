@@ -9,9 +9,9 @@
 #include "producer.h"
 
 #define PRODUCER_THREADS 2
-#define CONSUMER_THREADS 5
+#define CONSUMER_THREADS 6
 
-#define QUEUE_SIZE 100
+#define QUEUE_SIZE 10000
 
 pthread_t G_producer[PRODUCER_THREADS];
 pthread_t G_consumer[CONSUMER_THREADS];
