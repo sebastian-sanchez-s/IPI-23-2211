@@ -1,21 +1,19 @@
 # Flags
 CC=gcc
 WF=-Wall -Werror -Wpedantic
-CF=-std=c11 -g -O2
-LD=-I./cddlib/lib-src/ -L./cddlib/lib-src/.libs/ -pthread -lcdd
+CF=-std=c11 -g -funroll-loops -O2 -fpic
+LD=-L. -pthread -lqsopt -lm
+
+SRCS=$(wildcard *.c)
 
 # Output organization
 NCOLTEX=5
 STAMP=m$(NCOL)n$(NROW)
 
-main: $(addprefix obj/,main.o syt.o)
+all: $(patsubst %.c,obj/%.o,$(SRCS))
 	$(CC) $(CF) $(WF) $^ $(LD) -o obj/a.out
 
-obj/syt.o: syt.c
-	mkdir -p obj
-	$(CC) $(CF) $(WF) -I./cddlib/lib-src/ $< -c -o obj/$(basename $<).o
-
-obj/main.o: main.c
+obj/%.o: %.c
 	mkdir -p obj
 	$(CC) $(CF) $(WF) $< -c -o obj/$(basename $<).o
 
