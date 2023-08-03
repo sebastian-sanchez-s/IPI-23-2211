@@ -6,3 +6,5 @@ una queue de tamaño fijo donde los productores vayan poniendo las tablas.
 
 Conflictos:
 - cddlib arma las matrices por columnas, pidiendo memoria para cada una (y la matriz misma). Esto dificulta el reuso.
+- cddlib no parecer ser thread safe
+- estoy probando qsopt que dice ser thread safe
