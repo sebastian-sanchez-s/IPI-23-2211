@@ -1,52 +1,83 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include "util.h"
+
 #include "qsopt.h"
+
 #include "setoper.h"
 #include "cdd.h"
-#include "queue.h"
-#include "consumer.h"
 
-static inline void print_table(FILE *f, int *arr);
+double solve_with_qsopt();
+double solve_with_cdd();
 
-double solve_with_qsopt(int *rnk);
-double solve_with_cdd(int *rank);
+int G_nrow, G_ncol, G_sz;
 
-void* solve_LP(void *nouse)
-/* Build inequalities from tableau and solves the lp with cdd */
+int main(int argc, char *argv[])
 {
+  if (argc < 4)
+  {
+    fprintf(stderr, "Usage: ./solver <ncol> <nrow> <t>.\n");
+    //fprintf(stderr, "solver=1 means cddlib.\n");
+    //fprintf(STDERR_FILENO, "solver=2 means qsopt.\n");
+    exit(-1);
+  }
+
+  G_nrow = atoi(argv[1]);
+  G_ncol = atoi(argv[2]);
+  G_sz = G_nrow*G_ncol;
+
+  int solver = 1;
+
+  int i = atoi(argv[3]);
+
+  char filename[50];
+  snprintf(filename, 49, "raw/Pm%in%it%i", G_nrow, G_ncol, i);
+  FILE *fp = fopen(filename, "w");
+  snprintf(filename, 49, "raw/Nm%in%it%i", G_nrow, G_ncol, i);
+  FILE *fn = fopen(filename, "w");
+
+  int *arr; CALLOC(arr, sizeof(int[G_sz]));
+  int *rnk; CALLOC(rnk, sizeof(int[G_sz+1]));
+
   while (1)
   {
-    int i = queue_get(G_producer2consumer_queue);
+    int incoming;
+    fscanf("%i", &incoming);
 
-    if (i < 0) // endthread
+    if (incoming < 0) // end process
     {
       return NULL;
     }
 
-    int *arr = &G_arr_consumer[i * G_sz];
-    int *rnk = &G_rnk_consumer[i * (G_sz+1)];
+    READARR(stdin, arr, 0, G_sz);
+    READARR(stdin, rnk, 1, G_sz);
 
-    FILE *fpos = G_files_pos[i];
-    FILE *fneg = G_files_neg[i];
-
-    //double optval = solve_with_qsopt(rnk);
-    double optval = solve_with_cdd(rnk);
-
-    if (optval > dd_almostzero)//0.0)
+    double optval, zero;
+    if (solver == 1)
     {
-      print_table(fpos, arr);
-      fprintf(fpos, "\n");
-    }
-    else
+      optval = solve_with_cdd();
+      zero = dd_almostzero;
+    } else 
     {
-      print_table(fneg, arr);
-      fprintf(fneg, "\n");
+      optval = solve_with_qsopt();
+      zero = 0.0;
     }
-    queue_put(G_consumer2producer_queue, i);
+
+    if (optval > zero)
+    {
+      PRINTARR(fp, arr, 0, G_sz);
+      fprintf(fp, "\n");
+    } else
+    {
+      PRINTARR(fn, arr, 0, G_sz);
+      fprintf(fn, "\n");
+    }
   }
 
-  return NULL;
+  return 0;
 }
 
-double solve_with_qsopt(int *rnk)
+double solve_with_qsopt()
 {
   #define NUM_INE_TABLEAU (G_sz-1)
   #define NUM_VAR (G_ncol + G_nrow)
@@ -117,7 +148,7 @@ double solve_with_qsopt(int *rnk)
   return optval;
 }
 
-double solve_with_cdd(int *rank)
+double solve_with_cdd()
 {
   dd_set_global_constants();
   #define NUM_INE_TABLEAU (G_sz-1)
@@ -138,10 +169,10 @@ double solve_with_cdd(int *rank)
   /* For every rank k: 0<= -y_col(k) - x_row(k) - epsilon + y_col(k+1) + x_row(k+1). */
   {
       // y variables starts after x variables .ie. at index G_nrow+1
-      int y_col_k = (rank[k]%G_ncol) + G_nrow+1;
-      int x_row_k = (rank[k]/G_ncol) + 1;
-      int y_col_kp1 = (rank[k+1]%G_ncol) + G_nrow+1;
-      int x_row_kp1 = (rank[k+1]/G_ncol) + 1;
+      int y_col_k = (rnk[k]%G_ncol) + G_nrow+1;
+      int x_row_k = (rnk[k]/G_ncol) + 1;
+      int y_col_kp1 = (rnk[k+1]%G_ncol) + G_nrow+1;
+      int x_row_kp1 = (rnk[k+1]/G_ncol) + 1;
       
       // If same variables appears on both sides, it gets cancel out
       int x_coeff = (x_row_k == x_row_kp1) ? 0: 1;
@@ -209,14 +240,3 @@ double solve_with_cdd(int *rank)
 
   return objval;
 }
-
-static inline void print_table(FILE *f, int *arr)
-{
-  for (int j = 0; j < G_sz-1; j++)
-  {
-    char c = ((j+1)%G_ncol == 0) ? ';': ',';
-    fprintf(f, "%i%c", arr[j], c);
-  }
-  fprintf(f, "%i", arr[G_sz-1]);
-}
-

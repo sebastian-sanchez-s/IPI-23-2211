@@ -1,5 +1,5 @@
-#include <string.h>
 #include <stdio.h>
+#include "util.h"
 #include "producer.h"
 
 static inline int bad_neighbors(int value, int *arr, int i);
@@ -59,15 +59,13 @@ void* generate_table(void* param)
   {
     if (pos == G_sz-1)
     {
-      int d = queue_get(G_consumer2producer_queue);
+      int i = queue_get(G_consumer2producer_queue);
 
-      // Copy data 
-      int *arr_ite = &G_arr_consumer[d*G_sz];
-      int *rnk_ite = &G_rnk_consumer[d*(G_sz+1)];
-      for (int k=0; k < G_sz; k++)
-      { arr_ite[k]=arr[k]; rnk_ite[k+1]=rnk[k+1]; }
+      FILE *out = G_consumer_data[i].fs_p2c_w;
 
-      queue_put(G_producer2consumer_queue, d);
+      // Send data to consumer 
+      PRINTARR(out, arr, 0, G_sz);
+      PRINTARR(out, rnk, 1, G_sz); 
 
       pos -= 1;
     }
