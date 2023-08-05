@@ -14,10 +14,16 @@ de tal forma que cada fila y cada columna forme un
 arreglo creciente de izquierda a derecha y de arriba
 hacia abajo.
 
-Este software computa las tablas de young que representan
-sumas exteriores.
+Este software computa las tablas de Young y guarda en
+archivos separados cuales corresponden a sumas exteriores
+(prefijo P) y cuáles no (prefijo N).
 
 #### Uso
+
+En linux (y posiblemente mac) hay que actualizar la ruta del linker
+```sh
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/cddlib/lib-src/.libs/
+```
 
 Compilar:
 ```sh
@@ -41,9 +47,10 @@ Ejemplo de la organización del directorio.
 ```
 ./IPI-23-2211
 |-- main.c
-|-- consumer.{h,c}
+|-- consumer.c
 |-- producer.{h,c}
 |-- queue.{h,c}
+|-- util.h
 |-- qsopt.h
 |-- libqsopt.a
 |-- makefile
