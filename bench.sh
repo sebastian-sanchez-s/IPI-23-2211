@@ -1,4 +1,4 @@
-SAMPLES=5
+SAMPLES=3
 ROOTDIR=$(pwd)/perf/
 
 mkdir -p $ROOTDIR
