@@ -1,24 +1,30 @@
 # Flags
 CC=gcc
-WF=-Wall -Werror -Wpedantic
-CF=-std=c11 -g -funroll-loops -O2 -fpic
+WF=-Wall -Werror -Wpedantic -Wextra
+CF=-std=gnu11 -g -funroll-loops -O2 -fpic
 LD=-L. -I./cddlib/lib-src/ -L./cddlib/lib-src/.libs/ -pthread -lqsopt -lcdd -lm
 
-SRCS=$(wildcard *.c)
+SRCS=main.c\
+		 producer.c\
+		 queue.c
+OBJS=$(patsubst %.c,obj/%.o,$(SRCS))
 
-# Output organization
 NCOLTEX=5
 STAMP=m$(NCOL)n$(NROW)
 
-all: $(patsubst %.c,obj/%.o,$(SRCS))
-	$(CC) $(CF) $(WF) $^ $(LD) -o obj/a.out
+all: $(OBJS) consumer
+	$(CC) $(CF) $(WF) $(OBJS) -o obj/a.out
 
 obj/%.o: %.c
 	mkdir -p obj
-	$(CC) $(CF) $(WF) -I./cddlib/lib-src/ $< -c -o obj/$(basename $<).o
+	$(CC) $(CF) $(WF) $< -c -o obj/$(basename $<).o
 
-cleanobj: obj/
+consumer: consumer.c
+	$(CC) $(CF) $(WF) $^ $(LD) -o $@
+
+clean: 
 	rm obj/*
+	rm raw/*
 
 run: obj/a.out
 	mkdir -p raw
