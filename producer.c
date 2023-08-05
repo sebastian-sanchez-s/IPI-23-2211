@@ -1,8 +1,6 @@
-#include <stdio.h>
-#include "util.h"
 #include "producer.h"
 
-static inline int bad_neighbors(int value, int *arr, int i);
+static inline int bad_neighbors(int value, int *arr, int j);
 
 void* generate_table(void* param)
 {
@@ -11,10 +9,10 @@ void* generate_table(void* param)
   //
   int i = ((struct producer_param_t*) param)->i;
   int seed = ((struct producer_param_t*) param)->seed;
-
-  int *arr = &G_arr_producer[i * G_sz];
-  int *tkn = &G_tkn_producer[i * (G_sz+1)];
-  int *rnk = &G_rnk_producer[i * (G_sz+1)];
+  _debugP("thread %i with seed %i\n", i, seed);
+  int *arr = &G_arr[i * G_sz];
+  int *tkn = &G_tkn[i * (G_sz+1)];
+  int *rnk = &G_rnk[i * (G_sz+1)];
 
   for (int k=0; k<G_sz+1; k++)
   { tkn[k] = 0; rnk[k] = 0; }
@@ -59,13 +57,19 @@ void* generate_table(void* param)
   {
     if (pos == G_sz-1)
     {
-      int i = queue_get(G_consumer2producer_queue);
-
-      FILE *out = G_consumer_data[i].fs_p2c_w;
+      _debugP("Wait for consumer.\n");
+      int c = queue_get(G_consumer2producer_queue);
 
       // Send data to consumer 
+      _debugP("Send data to consumer %i.\n", c);
+
+      FILE *out = G_consumer_data[c].fs_w;
+      PANIKON(out==NULL, "fs_w of %i is null\n", c);
+      fprintf(out, "1\n");
       PRINTARR(out, arr, 0, G_sz);
-      PRINTARR(out, rnk, 1, G_sz); 
+      fflush(out);
+      PRINTARR(out, rnk, 1, G_sz);
+      fflush(out);
 
       pos -= 1;
     }
@@ -93,14 +97,16 @@ void* generate_table(void* param)
     }
   }
 
+  arr=NULL;
+  rnk=NULL;
+  tkn=NULL;
   queue_put(G_producer_threads_queue, i);
-
-  return NULL;
+  pthread_exit(NULL);
 }
 
-static inline int bad_neighbors(int value, int *arr, int i)
+static inline int bad_neighbors(int value, int *arr, int j)
 {
-  int up = (G_ncol<i && arr[i-G_ncol] >= value);
-  int left = (i%G_ncol>0 && arr[i-1] >= value);
+  int up = (G_ncol<j && arr[j-G_ncol] >= value);
+  int left = (j%G_ncol>0 && arr[j-1] >= value);
   return up || left;
 }

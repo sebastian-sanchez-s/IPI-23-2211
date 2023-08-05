@@ -1,5 +1,3 @@
-#include <stdlib.h>
-#include <stdio.h>
 #include "util.h"
 
 #include "qsopt.h"
@@ -10,71 +8,106 @@
 double solve_with_qsopt();
 double solve_with_cdd();
 
+#ifndef CDDSOLVER
+#define CDDSOLVER 1
+#else
+#error "CDDSOLVER already defined."
+#endif
+#ifndef QSOPTSOLVER
+#define QSOPTSOLVER 2
+#else
+#error "QSOPT already defined."
+#endif
+
+#ifndef SOLVER
+#define SOLVER CDDSOLVER
+#else
+#error "SOLVER already defined."
+#endif
+
+void die(int sig);
+
 int G_nrow, G_ncol, G_sz;
+int *rnk = NULL;
+int *arr = NULL;
+
+FILE *fp = NULL;
+FILE *fn = NULL;
+
+//int tcount = 0, pcount = 0;
 
 int main(int argc, char *argv[])
 {
   if (argc < 4)
   {
-    fprintf(stderr, "Usage: ./solver <ncol> <nrow> <t>.\n");
-    //fprintf(stderr, "solver=1 means cddlib.\n");
-    //fprintf(STDERR_FILENO, "solver=2 means qsopt.\n");
+    fprintf(stderr, "Usage: ./consumer <ncol> <nrow> <t>.\n");
     exit(-1);
   }
 
-  G_nrow = atoi(argv[1]);
-  G_ncol = atoi(argv[2]);
+  G_ncol = atoi(argv[1]);
+  G_nrow = atoi(argv[2]);
   G_sz = G_nrow*G_ncol;
-
-  int solver = 1;
 
   int i = atoi(argv[3]);
 
-  char filename[50];
-  snprintf(filename, 49, "raw/Pm%in%it%i", G_nrow, G_ncol, i);
-  FILE *fp = fopen(filename, "w");
-  snprintf(filename, 49, "raw/Nm%in%it%i", G_nrow, G_ncol, i);
-  FILE *fn = fopen(filename, "w");
+  _debug("G_ncol = %i, G_nrow = %i, G_sz == %i\n", G_ncol, G_nrow, G_sz);
 
-  int *arr; CALLOC(arr, sizeof(int[G_sz]));
-  int *rnk; CALLOC(rnk, sizeof(int[G_sz+1]));
+  #define BUFFSIZE 40
+
+  char filename[BUFFSIZE];
+  snprintf(filename, BUFFSIZE, "raw/Pc%ir%it%i", G_ncol, G_nrow, i);
+  fp = fopen(filename, "w");
+  PANIKON(fp==NULL, "fopen() failed.");
+
+  snprintf(filename, BUFFSIZE, "raw/Nc%ir%it%i", G_ncol, G_nrow, i);
+  fn = fopen(filename, "w");
+  PANIKON(fn==NULL, "fopen() failed.");
+
+  MALLOC(arr, sizeof(int[G_sz]));
+  MALLOC(rnk, sizeof(int[G_sz+1]));
 
   while (1)
   {
-    int incoming;
-    fscanf("%i", &incoming);
+    // Tell producer we are ready to read arrays
+    printf("%i\n", i);
+    fflush(stdout);
 
-    if (incoming < 0) // end process
-    {
-      return NULL;
-    }
-
+    // Expect response
+    int flag;
+    scanf("%i", &flag);
+    if (flag < 0) die(0);
+    
+    _debugC("Wait for array.\n");
     READARR(stdin, arr, 0, G_sz);
     READARR(stdin, rnk, 1, G_sz);
 
+    _debugC("Got array:\n");
+    //PRINTARR(stderr, arr, 0, G_sz);
+    //PRINTARR(stderr, rnk, 1, G_sz);
+    
     double optval, zero;
-    if (solver == 1)
-    {
-      optval = solve_with_cdd();
-      zero = dd_almostzero;
-    } else 
-    {
-      optval = solve_with_qsopt();
-      zero = 0.0;
-    }
+#if SOLVER == CDDSOLVER
+    optval = solve_with_cdd();
+    zero = dd_almostzero;
+#elif SOLVER == QSOPTSOLVER
+    optval = solve_with_qsopt();
+#else
+#error "SOLVER not identified."
+#endif
 
+    //tcount++;
     if (optval > zero)
     {
+      //pcount++;
       PRINTARR(fp, arr, 0, G_sz);
-      fprintf(fp, "\n");
-    } else
+    }
+    else
     {
       PRINTARR(fn, arr, 0, G_sz);
-      fprintf(fn, "\n");
     }
   }
 
-  return 0;
+  die(0);
 }
 
 double solve_with_qsopt()
@@ -224,19 +257,29 @@ double solve_with_cdd()
   // Set LP and Solve 
   //
   A->objective = dd_LPmax;
-  dd_ErrorType error=dd_NoError;
+  dd_ErrorType error = dd_NoError;
   dd_LPPtr lp = dd_Matrix2LP(A, &error);
+  PANIKON( lp==NULL, "dd_Matrix2LP() failed.");
 
   dd_LPSolverType solver = dd_DualSimplex;
   dd_LPSolve(lp, solver, &error);
-
+  PANIKON( error!=dd_NoError, "dd_LPSolve() failed.");
 
   double objval = *lp->optvalue;
 
   dd_FreeLPData(lp);
   dd_FreeMatrix(A);
-
   dd_free_global_constants();
 
   return objval;
+}
+
+void die(int sig)
+{
+  //fprintf(fp, "Total=%i,Realizable=%i\n", tcount, pcount);
+  fclose(fp);
+  fclose(fn);
+  free(arr);
+  free(rnk);
+  exit(sig);
 }

@@ -1,25 +1,16 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdint.h>
-#include <pthread.h>
 #include "util.h"
 #include "queue.h"
 #include "producer.h"
 
-#define NUM_PRODUCER 1
-#define NUM_CONSUMER 1 
+#define NUM_PRODUCER 2
+#define NUM_CONSUMER 8
 
-#define QUEUE_SIZE 10
+#define QUEUE_SIZE 2000
+
+#define CONSUMERAPP "./consumer"
 
 pthread_t G_producer[NUM_PRODUCER];
-struct consumer_data_t {
-  int i; // index in this array
-  int p2c[2]; // parent to child pipe
-  int c2p[2]; // child to parent pipe
-  pthread_t listener;
-} G_consumer_data[NUM_CONSUMER];
-
+struct consumer_data_t G_consumer_data[NUM_CONSUMER];
 struct producer_param_t G_producer_params[NUM_PRODUCER];
 
 struct queue_t *G_producer_threads_queue = NULL;
@@ -28,27 +19,22 @@ struct queue_t *G_consumer2producer_queue = NULL;
 int G_nrow, G_ncol, G_sz;
 int *G_min = NULL, *G_max = NULL;
 
-int *G_arr_producer = NULL;
-int *G_rnk_producer = NULL;
-int *G_tkn_producer = NULL;
+int *G_arr = NULL;
+int *G_rnk = NULL;
+int *G_tkn = NULL;
 
-static int launch_consumer(int i);
+void launch_consumer(int i);
+void *listen_consumer(void *arg);
+void *dummy(void *arg)
+{
+  queue_put(G_producer_threads_queue, *(int*)arg); 
+  pthread_exit(0);
+}
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
   PANIKON(argc < 3, "Usage: ./<executable> <ncol> <nrow>\n");
-
-  for (int i=0; i<NUM_CONSUMER; i++)
-  { launch_consumer(i); }
-
-  for (int i=0; i<NUM_CONSUMER; i++)
-  {
-    pthread_create(&G_consumer_data[i].listener,
-                    NULL, 
-                    listen_consumer, 
-                    &G_consumer_data[i].i);
-  }
-
+  
   //
   // Initialization
   //
@@ -56,6 +42,8 @@ int main(int argc, char* argv[])
   G_nrow = atoi(argv[2]);
   G_sz = G_ncol*G_nrow;
 
+  for (int i=0; i<NUM_CONSUMER; i++)
+  { launch_consumer(i); }
   //
   // Compute G_min and G_max
   //
@@ -74,24 +62,33 @@ int main(int argc, char* argv[])
   //
   // Allocate enough memory at once
   //
-  MALLOC(G_arr_producer, sizeof(int[PRODUCER_THREADS][G_sz]));
-  MALLOC(G_rnk_producer, sizeof(int[PRODUCER_THREADS][G_sz+1]));
-  MALLOC(G_tkn_producer, sizeof(int[PRODUCER_THREADS][G_sz+1]));
+  MALLOC(G_arr, sizeof(int[NUM_PRODUCER][G_sz]));
+  MALLOC(G_rnk, sizeof(int[NUM_PRODUCER][G_sz+1]));
+  MALLOC(G_tkn, sizeof(int[NUM_PRODUCER][G_sz+1]));
 
-  G_producer_threads_queue  = queue_init(QUEUE_SIZE);
+  G_producer_threads_queue  = queue_init(NUM_PRODUCER);
   G_consumer2producer_queue = queue_init(QUEUE_SIZE);
 
   //
   // Launch producers
   //
+  for (int i=0; i<NUM_CONSUMER; i++)
+  {
+    pthread_create(&G_consumer_data[i].listener,
+                    NULL,
+                    listen_consumer,
+                    &G_consumer_data[i].i);
+  }
 
-  for (int i=0; i<PRODUCER_THREADS; i++)
-  { queue_put(G_producer_threads_queue, i); }
+  for (int i=0; i<NUM_PRODUCER; i++)
+  { G_producer_params[i].i = i; pthread_create(&G_producer[i], NULL, dummy, &G_producer_params[i]); }
 
   int seed = 2;
   while(seed < G_nrow+2)
   {
     int i = queue_get(G_producer_threads_queue);
+
+    pthread_join(G_producer[i], NULL);
 
     G_producer_params[i] = (struct producer_param_t) {
       .i = i,
@@ -102,22 +99,30 @@ int main(int argc, char* argv[])
                    NULL,
                    generate_table,
                    &G_producer_params[i]);
-
     seed++;
   }
 
-  for (int i=0; i<PRODUCER_THREADS; i++)
-  {
-    pthread_join(G_producer[i], NULL);
-  }
+  for (int i=0; i<NUM_PRODUCER; i++)
+  { pthread_join(G_producer[i], NULL); }
 
+  for (int i=0; i<NUM_CONSUMER; i++)
+  {
+    struct consumer_data_t *cdata = &G_consumer_data[i];
+
+    fprintf(cdata->fs_w, "-1\n"); fflush(cdata->fs_w);
+
+    waitpid(cdata->pid, NULL, 0);
+
+    fclose(cdata->fs_w);
+    fclose(cdata->fs_r);
+  }
 
   free(G_min);
   free(G_max);
 
-  free(G_arr_producer);
-  free(G_rnk_producer);
-  free(G_tkn_producer);
+  free(G_arr);
+  free(G_rnk);
+  free(G_tkn);
 
   queue_destroy(G_producer_threads_queue);
   queue_destroy(G_consumer2producer_queue);
@@ -127,39 +132,58 @@ int main(int argc, char* argv[])
 
 void launch_consumer(int i)
 {
-  struct consumer_data_t *cdata = G_consumer_data[i];
+  struct consumer_data_t *cdata = &G_consumer_data[i];
 
   cdata->i = i;
   
-  PANIKON(pipe(cdata->p2c), "pipe() failed.\n");
-  PANIKON(pipe(cdata->c2p), "pipe() failed.\n");
+  int p2c[2], c2p[2]; // parent to child, child to parent
+  PANIKON(pipe(p2c), "pipe() failed.");
+  PANIKON(pipe(c2p), "pipe() failed.");
 
   cdata->pid = fork();
-  PANIKON(cdata->pid == -1, "fork() failed.\n");
+  PANIKON(cdata->pid == -1, "fork() failed.");
 
-  if (!cdata->pid) 
+  if (!cdata->pid)
   {
-    close(cdata->p2c[1]); // child don't write here
-    dup2(cdata->p2c[0], STDIN_FILENO);
-    close(cdata->c2p[0]); // child don't read here
-    dup2(cdata->c2p[1], STDOUT_FILENO);
+    PANIKON( dup2(p2c[0], 0) == -1, "dup2() failed."); // child reads from stdin
+    PANIKON( dup2(c2p[1], 1) == -1, "dup2() failed."); // child writes to stdout
+    close(p2c[1]); close(p2c[0]);
+    close(c2p[0]); close(c2p[1]); 
 
-    PANIKON(execlp(CONSUMERAPP, CONSUMERAPP, G_ncol_str, G_nrow_str, NULL) == -1, "execlp() failed.\n");
+    char *vars[5]; vars[0] = CONSUMERAPP; vars[4] = NULL;
+    MALLOC(vars[1], sizeof(char[6])); snprintf(vars[1], INTWIDTH-1, "%i", G_ncol);
+    MALLOC(vars[2], sizeof(char[6])); snprintf(vars[2], INTWIDTH-1, "%i", G_nrow);
+    MALLOC(vars[3], sizeof(char[6])); snprintf(vars[3], INTWIDTH-1, "%i", i);
+
+    PANIKON(execv(CONSUMERAPP, vars) == -1, "execv() failed.");
+  } else {
+    close(p2c[0]); // parent doesn't read from here
+    close(c2p[1]); // parent doesn't write here
+
+    cdata->fs_r = fdopen(c2p[0], "r"); // read here
+    PANIKON(cdata->fs_r==NULL, "fdopen() failed."); 
+
+    cdata->fs_w = fdopen(p2c[1], "w"); // write here
+    PANIKON(cdata->fs_w==NULL, "fdopen() failed."); 
   }
-
-  cdata->fs_p2c_w = fdopen(cdata->p2c[0], "w");
-  cdata->fs_c2p_r = fdopen(cdata->c2p[1], "r");
 }
 
 void *listen_consumer(void *arg)
 {
   int i = *(int*) arg;
 
+  _debugP("listening to %i\n", i);
+
   struct consumer_data_t *cdata = &G_consumer_data[i];
 
-  while (fgetc(cdata->fs_c2p_r))
+  int flag;
+  while( fscanf(cdata->fs_r, "%i", &flag) != EOF)
   {
-    queue_put(consumer2producer_queue, i);
-  }
-}
+    _debugP("Got %i.\n", flag);
 
+    queue_put(G_consumer2producer_queue, i);
+  }
+  _debugP("listener out.\n");
+
+  pthread_exit(NULL);
+}

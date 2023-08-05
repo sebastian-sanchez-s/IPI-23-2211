@@ -1,31 +1,70 @@
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef UTIL_H
+#define UTIL_H
 
-#define PANIKON(cond,msg) do {\
-  if (cond) { fprintf(stderr, msg); exit(-1); }\
-} while(0)\
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <pthread.h>
+#include <errno.h>
+#include <string.h>
 
-#define MALLOC(ptr, sz) {\
+#include <unistd.h>
+#include <sys/wait.h>
+
+/**************************
+* MACROS
+**************************/
+#define INTWIDTH 6 
+
+#define PANIKON(cond,...)\
+{\
+  if (cond) {\
+    if (errno) fprintf(stderr, "%s", strerror(errno));\
+    fprintf(stderr, "PANIK[%i]: ", errno);\
+    fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n");\
+    exit(-1);\
+  }\
+}
+
+#define MALLOC(ptr, sz)\
+{\
   ptr = malloc(sz);\
-  PANIKON(ptr==NULL, "malloc() failed.\n"); }
-
-#define CALLOC(ptr, sz) {\
-  ptr = calloc(1, sz);\
-  PANIKON(ptr==NULL, "calloc() failed.\n"); }
-
-#define PRINTARR(f, a, si, ei)\
-{\
-  fprintf(f, "\n");\
-  for(int k=si; k<ei-1; k++)\
-    fprintf(f, "%i,", a[k]);\
-  fprintf("%i\n", a[ei]);\
+  PANIKON(ptr==NULL, "malloc() failed.");\
 }
 
-#define READARR(f, a, si, ei)\
+#define CALLOC(ptr, n, sz)\
 {\
-  for(int k=si; k<ei-1; k++)\
-    fscanf(f, "%i,", &a[k]);\
-  fscanf(f, "%i\n", &a[ei]);\
+  ptr = calloc(n, sz);\
+  PANIKON(ptr==NULL, "calloc() failed.");\
 }
+
+#define PRINTARR(f, a, si, sz)\
+{\
+  for(int k=si; k<si+sz-1; k++)\
+  { fprintf(f, "%i ", a[k]); }\
+  fprintf(f, "%i\n", a[si+sz-1]);\
+}
+
+#define READARR(f, a, si, sz)\
+{\
+  for(int k=si; k<si+sz; k++)\
+  { fscanf(f, "%i", &a[k]); }\
+}
+
+#define _debug_flag 0
+#define _debug(...) if(_debug_flag) { fprintf(stderr, __VA_ARGS__); }
+#define _debugC(...) _debug("[CONSUMER] " __VA_ARGS__);
+#define _debugP(...) _debug("[PRODUCER] " __VA_ARGS__);
+
+/******************
+ * DATA STRUCTURES
+ * ****************/
+struct consumer_data_t {
+  pid_t pid; // process id
+  int i; // index in array
+  FILE *fs_w; // file stream to write
+  FILE *fs_r; // file stream to read
+  pthread_t listener;
+};
 
 #endif
