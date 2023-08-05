@@ -1,5 +1,4 @@
-#include <pthread.h>
-#include <stdlib.h>
+#include "util.h"
 #include "queue.h"
 
 struct queue_t {
@@ -15,8 +14,9 @@ struct queue_t {
 
 struct queue_t *queue_init(int size)
 {
-  struct queue_t *q = malloc(sizeof(*q));
-  q->list = calloc(size, sizeof(*(q->list)));
+  struct queue_t *q;
+  MALLOC(q, sizeof(struct queue_t));
+  MALLOC(q->list, sizeof(int[size+1]));
   q->head = 0;
   q->tail = 0;
   q->size = size;
@@ -29,6 +29,7 @@ struct queue_t *queue_init(int size)
 
 int queue_put(struct queue_t *q, int d)
 {
+  PANIKON(q==NULL, "queue is null");
   pthread_mutex_lock(&q->lock);
   
   while (q->count == q->size)
@@ -38,7 +39,7 @@ int queue_put(struct queue_t *q, int d)
 
   q->list[q->head] = d;
   q->head = (q->head + 1) % q->size;
-  q->count++;
+  q->count = q->count + 1;
 
   pthread_mutex_unlock(&q->lock);
   pthread_cond_signal(&q->empty);
@@ -48,6 +49,7 @@ int queue_put(struct queue_t *q, int d)
 
 int queue_get(struct queue_t *q)
 {
+  PANIKON(q==NULL, "queue is null");
   pthread_mutex_lock(&q->lock);
 
   while (q->count == 0)
@@ -58,7 +60,7 @@ int queue_get(struct queue_t *q)
   int r = q->list[q->tail];
 
   q->tail = (q->tail + 1) % q->size;
-  q->count--;
+  q->count = q->count - 1;
 
   pthread_mutex_unlock(&q->lock);
   pthread_cond_signal(&q->full);
@@ -68,11 +70,11 @@ int queue_get(struct queue_t *q)
 
 void queue_destroy(struct queue_t *q)
 {
+  PANIKON(q==NULL, "queue is null");
   pthread_mutex_destroy(&q->lock);
   pthread_cond_destroy(&q->full);
   pthread_cond_destroy(&q->empty);
   free(q->list);
   free(q);
-  q = NULL;
 }
 
