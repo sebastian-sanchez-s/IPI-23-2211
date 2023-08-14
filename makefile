@@ -2,11 +2,14 @@
 CC=gcc
 WF=-Wall -Werror -Wpedantic -Wextra
 CF=-std=gnu11 -g -funroll-loops -O2 -fpic
-LD=-L. -I./cddlib/lib-src/ -L./cddlib/lib-src/.libs/ -pthread -lqsopt -lcdd -lm
+LD=-L. -I./cddlib/lib-src/ -L./cddlib/lib-src/.libs/ -pthread -lcdd
 
 SRCS=main.c\
 		 producer.c\
-		 queue.c
+		 queue.c\
+		 table.c\
+		 sort_search_utils.c\
+
 OBJS=$(patsubst %.c,obj/%.o,$(SRCS))
 
 NCOLTEX=5

@@ -1,35 +1,35 @@
-#include "util.h"
+#include "common.h"
 #include "queue.h"
 #include "producer.h"
+#include "table.h"
 
-#define NUM_PRODUCER 2
-#define NUM_CONSUMER 8
+/* = auxiliary functions = */
+void *thread_void();
+void *listen_consumer(void *arg);
+void launch_consumer(int i);
 
-#define QUEUE_SIZE 2000
-
-#define CONSUMERAPP "./consumer"
+/* = producer consumer globals = */
+#define NUM_PRODUCER 1
+#define NUM_CONSUMER 1
 
 pthread_t G_producer[NUM_PRODUCER];
 struct consumer_data_t G_consumer_data[NUM_CONSUMER];
 struct producer_param_t G_producer_params[NUM_PRODUCER];
 
-struct queue_t *G_producer_threads_queue = NULL;
-struct queue_t *G_consumer2producer_queue = NULL;
+/* = queue globals = */
+#define QUEUE_SIZE 2000
+struct queue_t *G_producer_threads_queue;
+struct queue_t *G_consumer2producer_queue;
 
+/* = global auxialiry objects = */
 int G_nrow, G_ncol, G_sz;
-int *G_min = NULL, *G_max = NULL;
+int *G_min, *G_max;
 
-int *G_arr = NULL;
-int *G_rnk = NULL;
-int *G_tkn = NULL;
+int *G_arr;
+int *G_rnk;
+int *G_tkn;
 
-void launch_consumer(int i);
-void *listen_consumer(void *arg);
-void *dummy(void *arg)
-{
-  queue_put(G_producer_threads_queue, *(int*)arg); 
-  pthread_exit(0);
-}
+struct avl_node_t *G_avl_table = NULL;
 
 int main(int argc, char *argv[])
 {
@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
 
   for (int i=0; i<NUM_CONSUMER; i++)
   { launch_consumer(i); }
+
   //
   // Compute G_min and G_max
   //
@@ -70,7 +71,16 @@ int main(int argc, char *argv[])
   G_consumer2producer_queue = queue_init(QUEUE_SIZE);
 
   //
-  // Launch producers
+  // Build avl tree
+  //
+  if (G_ncol > 3 || G_nrow > 3)
+  {
+    G_avl_table = avl_from_file(3, 3); 
+    avl_print(G_avl_table);
+  }
+
+  //
+  // Launch threads 
   //
   for (int i=0; i<NUM_CONSUMER; i++)
   {
@@ -81,8 +91,16 @@ int main(int argc, char *argv[])
   }
 
   for (int i=0; i<NUM_PRODUCER; i++)
-  { G_producer_params[i].i = i; pthread_create(&G_producer[i], NULL, dummy, &G_producer_params[i]); }
+  {
+    G_producer_params[i].i = i;
+    pthread_create(&G_producer[i], NULL, thread_void, NULL);
+    queue_put(G_producer_threads_queue, i); 
+  }
 
+  
+  //
+  // Execute producers 
+  //
   int seed = 2;
   while(seed < G_nrow+2)
   {
@@ -130,6 +148,28 @@ int main(int argc, char *argv[])
   return 0;
 }
 
+void *thread_void()
+{
+  pthread_exit(0);
+}
+
+void *listen_consumer(void *arg)
+{
+  int i = *(int*) arg;
+
+  struct consumer_data_t *cdata = &G_consumer_data[i];
+
+  int flag;
+  while( fscanf(cdata->fs_r, "%i", &flag) != EOF)
+  {
+    queue_put(G_consumer2producer_queue, i);
+  }
+
+  pthread_exit(NULL);
+}
+
+#define CONSUMERAPP "./consumer"
+
 void launch_consumer(int i)
 {
   struct consumer_data_t *cdata = &G_consumer_data[i];
@@ -156,7 +196,9 @@ void launch_consumer(int i)
     MALLOC(vars[3], sizeof(char[6])); snprintf(vars[3], INTWIDTH-1, "%i", i);
 
     PANIKON(execv(CONSUMERAPP, vars) == -1, "execv() failed.");
-  } else {
+  } 
+  else 
+  {
     close(p2c[0]); // parent doesn't read from here
     close(c2p[1]); // parent doesn't write here
 
@@ -166,24 +208,4 @@ void launch_consumer(int i)
     cdata->fs_w = fdopen(p2c[1], "w"); // write here
     PANIKON(cdata->fs_w==NULL, "fdopen() failed."); 
   }
-}
-
-void *listen_consumer(void *arg)
-{
-  int i = *(int*) arg;
-
-  _debugP("listening to %i\n", i);
-
-  struct consumer_data_t *cdata = &G_consumer_data[i];
-
-  int flag;
-  while( fscanf(cdata->fs_r, "%i", &flag) != EOF)
-  {
-    _debugP("Got %i.\n", flag);
-
-    queue_put(G_consumer2producer_queue, i);
-  }
-  _debugP("listener out.\n");
-
-  pthread_exit(NULL);
 }

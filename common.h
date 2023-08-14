@@ -1,6 +1,8 @@
-#ifndef UTIL_H
-#define UTIL_H
+#pragma once
 
+/* ================== */
+/* ==== Includes ==== */ 
+/* ================== */
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -11,20 +13,28 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-/**************************
-* MACROS
-**************************/
+/* ================ */
+/* ==== MACROS ==== */ 
+/* ================ */
+#define NFMT "raw/Nc%ir%i"
+#define PFMT "raw/Pc%ir%i"
+
 #define INTWIDTH 6 
 
-#define PANIKON(cond,...)\
-{\
-  if (cond) {\
-    if (errno) fprintf(stderr, "%s", strerror(errno));\
-    fprintf(stderr, "PANIK[%i]: ", errno);\
-    fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n");\
-    exit(-1);\
-  }\
-}
+#define PANIK(...) do {\
+  fprintf(stderr,\
+  "\n[PANIK]\n\
+  File     => %s\n\
+  Location => %s:%i\n\
+  Error    => ",\
+  __FILE__, __func__, __LINE__);\
+  fprintf(stderr, __VA_ARGS__);\
+  exit(-1);\
+} while(0) 
+
+#define PANIKON(cond, ...) do {\
+    if (cond) { PANIK(__VA_ARGS__); }\
+} while(0)
 
 #define MALLOC(ptr, sz)\
 {\
@@ -36,6 +46,14 @@
 {\
   ptr = calloc(n, sz);\
   PANIKON(ptr==NULL, "calloc() failed.");\
+}
+
+#define REALLOC(ptr, sz)\
+{\
+  {void* holder = ptr;\
+  ptr = realloc(holder, sz);\
+  PANIKON(ptr==NULL, "realloc() failed.");\
+  }\
 }
 
 #define PRINTARR(f, a, si, sz)\
@@ -56,15 +74,13 @@
 #define _debugC(...) _debug("[CONSUMER] " __VA_ARGS__);
 #define _debugP(...) _debug("[PRODUCER] " __VA_ARGS__);
 
-/******************
- * DATA STRUCTURES
- * ****************/
+/* ====================== */
+/* ==== Data Structs ==== */ 
+/* ====================== */
 struct consumer_data_t {
-  pid_t pid; // process id
-  int i; // index in array
-  FILE *fs_w; // file stream to write
-  FILE *fs_r; // file stream to read
+  int i;
+  pid_t pid;
   pthread_t listener;
+  FILE *fs_w;
+  FILE *fs_r;
 };
-
-#endif

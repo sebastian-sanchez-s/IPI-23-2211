@@ -1,6 +1,12 @@
 #include "producer.h"
+#include "table.h"
 
-static inline int bad_neighbors(int value, int *arr, int j);
+inline int bad_neighbors(int value, int *arr, int j)
+{
+  int up = (G_ncol<j && arr[j-G_ncol] >= value);
+  int left = (j%G_ncol>0 && arr[j-1] >= value);
+  return up || left;
+}
 
 void* generate_table(void* param)
 {
@@ -9,25 +15,25 @@ void* generate_table(void* param)
   //
   int i = ((struct producer_param_t*) param)->i;
   int seed = ((struct producer_param_t*) param)->seed;
-  _debugP("thread %i with seed %i\n", i, seed);
-  int *arr = &G_arr[i * G_sz];
-  int *tkn = &G_tkn[i * (G_sz+1)];
-  int *rnk = &G_rnk[i * (G_sz+1)];
 
-  for (int k=0; k<G_sz+1; k++)
-  { tkn[k] = 0; rnk[k] = 0; }
+  struct table_t syt   = (struct table_t){.c=G_ncol, .r=G_nrow, .sz=G_sz, .t=&G_arr[i*G_sz]};
+  struct table_t taken = (struct table_t){.c=G_ncol, .r=G_nrow, .sz=G_sz+1, .t=&G_tkn[i*(G_sz+1)]};
+  struct table_t rank  = (struct table_t){.c=G_ncol, .r=G_nrow, .sz=G_sz+1, .t=&G_rnk[i*(G_sz+1)]};
 
-  arr[0] = 1;
-  arr[1] = seed;
-  arr[G_sz-1] = G_sz;
+  table_set_all(&taken, 0);
+  table_set_all(&rank, 0);
 
-  tkn[1] = 1;
-  tkn[seed] = 1;
-  tkn[G_sz] = 1;
+  syt.t[0] = 1;
+  syt.t[1] = seed;
+  syt.t[G_sz-1] = G_sz;
 
-  rnk[1] = 0;
-  rnk[seed] = 1;
-  rnk[G_sz] = G_sz-1;
+  taken.t[1] = 1;
+  taken.t[seed] = 1;
+  taken.t[G_sz] = 1;
+
+  rank.t[1] = 0;
+  rank.t[seed] = 1;
+  rank.t[G_sz] = G_sz-1;
 
   //
   // Fill table with minimal configuration.
@@ -35,15 +41,15 @@ void* generate_table(void* param)
   int pos = 2;
   int t = G_min[pos];
   do {
-    if (tkn[t] || bad_neighbors(t, arr, pos))
+    if (taken.t[t] || bad_neighbors(t, syt.t, pos))
     {
       t++;
     } 
-    else 
+    else
     {
-      arr[pos] = t;
-      tkn[t] = 1;
-      rnk[t] = pos;
+      syt.t[pos] = t;
+      taken.t[t] = 1;
+      rank.t[t] = pos;
       pos += 1;
       t = G_min[pos];
     }
@@ -57,56 +63,49 @@ void* generate_table(void* param)
   {
     if (pos == G_sz-1)
     {
-      _debugP("Wait for consumer.\n");
-      int c = queue_get(G_consumer2producer_queue);
+      if (G_avl_table == NULL || !table_has_banned_subrank_of_dim(G_avl_table, 3, 3, &syt))
+      {
+        int c = queue_get(G_consumer2producer_queue);
 
-      // Send data to consumer 
-      _debugP("Send data to consumer %i.\n", c);
-
-      FILE *out = G_consumer_data[c].fs_w;
-      PANIKON(out==NULL, "fs_w of %i is null\n", c);
-      fprintf(out, "1\n");
-      PRINTARR(out, arr, 0, G_sz);
-      fflush(out);
-      PRINTARR(out, rnk, 1, G_sz);
-      fflush(out);
-
+        // Send data to consumer 
+        FILE *out = G_consumer_data[c].fs_w;
+        PANIKON(out==NULL, "fs_w of %i is null\n", c);
+        fprintf(out, "1\n");
+        PRINTARR(out, syt.t, 0, G_sz);
+        fflush(out);
+        PRINTARR(out, rank.t, 1, G_sz);
+        fflush(out);
+      } else {
+        fprintf(stderr, "banned\t");
+        PRINTARR(stderr, syt.t, 0, G_sz);
+      }
       pos -= 1;
     }
 
     int imax = G_max[pos];
-    t = arr[pos] > 0 ? arr[pos]: G_min[pos];
+    t = syt.t[pos] > 0 ? syt.t[pos]: G_min[pos];
 
-    while (t <= imax && (tkn[t] || bad_neighbors(t, arr, pos)))
+    while (t <= imax && (taken.t[t] || bad_neighbors(t, syt.t, pos)))
     {
       t++;
     }
 
-    tkn[arr[pos]] = 0;
+    taken.t[syt.t[pos]] = 0;
     if (t > imax)
     {
-      arr[pos] = 0;
+      syt.t[pos] = 0;
       pos -= 1;
     } 
     else
     {
-      arr[pos] = t;
-      tkn[t] = 1;
-      rnk[t] = pos;
+      syt.t[pos] = t;
+      taken.t[t] = 1;
+      rank.t[t] = pos;
       pos += 1;
     }
   }
 
-  arr=NULL;
-  rnk=NULL;
-  tkn=NULL;
   queue_put(G_producer_threads_queue, i);
   pthread_exit(NULL);
 }
 
-static inline int bad_neighbors(int value, int *arr, int j)
-{
-  int up = (G_ncol<j && arr[j-G_ncol] >= value);
-  int left = (j%G_ncol>0 && arr[j-1] >= value);
-  return up || left;
-}
