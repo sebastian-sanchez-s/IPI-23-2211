@@ -1,31 +1,11 @@
-#include "util.h"
-
-#include "qsopt.h"
+#include "common.h"
 
 #include "setoper.h"
 #include "cdd.h"
 
-double solve_with_qsopt();
 double solve_with_cdd();
 
-#ifndef CDDSOLVER
-#define CDDSOLVER 1
-#else
-#error "CDDSOLVER already defined."
-#endif
-#ifndef QSOPTSOLVER
-#define QSOPTSOLVER 2
-#else
-#error "QSOPT already defined."
-#endif
-
-#ifndef SOLVER
-#define SOLVER CDDSOLVER
-#else
-#error "SOLVER already defined."
-#endif
-
-void die(int sig);
+void die(int);
 
 int G_nrow, G_ncol, G_sz;
 int *rnk = NULL;
@@ -33,8 +13,6 @@ int *arr = NULL;
 
 FILE *fp = NULL;
 FILE *fn = NULL;
-
-//int tcount = 0, pcount = 0;
 
 int main(int argc, char *argv[])
 {
@@ -50,16 +28,14 @@ int main(int argc, char *argv[])
 
   int i = atoi(argv[3]);
 
-  _debug("G_ncol = %i, G_nrow = %i, G_sz == %i\n", G_ncol, G_nrow, G_sz);
-
   #define BUFFSIZE 40
 
   char filename[BUFFSIZE];
-  snprintf(filename, BUFFSIZE, "raw/Pc%ir%it%i", G_ncol, G_nrow, i);
+  snprintf(filename, BUFFSIZE, PFMT"t%i", G_ncol, G_nrow, i);
   fp = fopen(filename, "w");
   PANIKON(fp==NULL, "fopen() failed.");
 
-  snprintf(filename, BUFFSIZE, "raw/Nc%ir%it%i", G_ncol, G_nrow, i);
+  snprintf(filename, BUFFSIZE, NFMT"t%i", G_ncol, G_nrow, i);
   fn = fopen(filename, "w");
   PANIKON(fn==NULL, "fopen() failed.");
 
@@ -77,108 +53,24 @@ int main(int argc, char *argv[])
     scanf("%i", &flag);
     if (flag < 0) die(0);
     
-    _debugC("Wait for array.\n");
     READARR(stdin, arr, 0, G_sz);
     READARR(stdin, rnk, 1, G_sz);
-
-    _debugC("Got array:\n");
-    //PRINTARR(stderr, arr, 0, G_sz);
-    //PRINTARR(stderr, rnk, 1, G_sz);
     
     double optval, zero;
-#if SOLVER == CDDSOLVER
     optval = solve_with_cdd();
     zero = dd_almostzero;
-#elif SOLVER == QSOPTSOLVER
-    optval = solve_with_qsopt();
-#else
-#error "SOLVER not identified."
-#endif
 
-    //tcount++;
     if (optval > zero)
     {
-      //pcount++;
       PRINTARR(fp, arr, 0, G_sz);
     }
     else
     {
-      PRINTARR(fn, arr, 0, G_sz);
+      PRINTARR(fn, rnk, 1, G_sz);
     }
   }
 
   die(0);
-}
-
-double solve_with_qsopt()
-{
-  #define NUM_INE_TABLEAU (G_sz-1)
-  #define NUM_VAR (G_ncol + G_nrow)
-
-  int rval;
-  QSprob p = QScreate_prob(NULL, QS_MAX);
-  if (p == NULL) fprintf(stderr, "Qcreate_prob failed.\n");
-
-  /* create variables x_1, ..., y_1, ..., epsilon */
-  for (int k=0; k<NUM_VAR; k++)
-  {
-    rval = QSnew_col(p, 0.0, 0.0, 1.0, NULL);
-    if (rval) fprintf(stderr, "QSadd_col failed.\n");
-  }
-  rval = QSnew_col(p, 1.0, 0.0, QS_MAXDOUBLE, NULL);
-  if (rval) fprintf(stderr, "QSadd_col failed.\n");
-
-  for (int k=1; k <= NUM_INE_TABLEAU; k++)
-  /* For every rank k: 0<= -y_col(k) - x_row(k) - epsilon + y_col(k+1) + x_row(k+1). */
-  {
-    // y variables starts after x variables .ie. at index G_nrow+1
-    int y_col_k = (rnk[k]%G_ncol) + G_nrow;
-    int x_row_k = (rnk[k]/G_ncol);
-    int y_col_kp1 = (rnk[k+1]%G_ncol) + G_nrow;
-    int x_row_kp1 = (rnk[k+1]/G_ncol);
-    
-    // Cancel out variables
-    double x_coeff = (x_row_k == x_row_kp1) ? 0.0: 1.0;
-    double y_coeff = (y_col_k == y_col_kp1) ? 0.0: 1.0;
-    
-    int rmatind[5] = {x_row_k, x_row_kp1, y_col_k, y_col_kp1, NUM_VAR};
-    double rmatval[5] = {-x_coeff, x_coeff, -y_coeff, y_coeff, -1.0};
-
-    rval = QSadd_row(p, 5, rmatind, rmatval, 0.0, 'G', NULL);
-    if (rval) fprintf(stderr, "QSadd_row failed.\n");
-  }
-
-  for (int k=0; k < G_nrow-1; k++)
-  /* 0 <= -x_k -epsilon + x_{k+1} */
-  {
-    int rmatind[3] = {k, k+1, NUM_VAR};
-    double rmatval[3] = {-1.0, 1.0, -1.0};
-
-    rval = QSadd_row(p, 3, rmatind, rmatval, 0.0, 'G', NULL);
-    if (rval) fprintf(stderr, "QSadd_row failed.\n");
-  }
-
-  for (int k=0; k < G_ncol-1; k++)
-  /* 0<= -y_k - epsilon + y_{k+1} */
-  {
-    int rmatind[3] = {G_nrow+k, G_nrow+k+1, NUM_VAR};
-    double rmatval[3] = {-1.0, 1.0, -1.0};
-
-    rval = QSadd_row(p, 3, rmatind, rmatval, 0.0, 'G', NULL);
-    if (rval) fprintf(stderr, "QSadd_row failed.\n");
-  }
-
-  int status;
-  rval = QSopt_dual(p, &status);
-  if (rval) fprintf(stderr, "QSopt_dual failed.\n");
-
-  double optval;
-  rval = QSget_objval(p, &optval);
-  if (rval) fprintf(stderr, "QSget_objval failed.\n");
-
-  QSfree_prob(p);
-
-  return optval;
 }
 
 double solve_with_cdd()
@@ -274,12 +166,11 @@ double solve_with_cdd()
   return objval;
 }
 
-void die(int sig)
+void die(int exit_code)
 {
-  //fprintf(fp, "Total=%i,Realizable=%i\n", tcount, pcount);
   fclose(fp);
   fclose(fn);
   free(arr);
   free(rnk);
-  exit(sig);
+  exit(exit_code);
 }
