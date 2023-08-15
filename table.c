@@ -63,11 +63,12 @@ void table_normalize(struct table_t *t)
  * */
 {
   int *relorder = i_sorted(t->sz, t->t);
-  
+
   for (int i=0; i<t->sz; i++)
   {
-    int *irank = bsearch(&t->t[i], relorder, t->sz, sizeof(int), __cmp__);
-    t->t[i] = *irank;
+    int irank;
+    i_bsearchi(t->sz, relorder, t->t[i], &irank);
+    t->t[i] = irank;
   }
 
   free(relorder);
@@ -145,7 +146,7 @@ int table_list_get_size(struct table_list_t *tl)
 
 int table_list_find(struct table_list_t *tl, struct table_t *t)
 {
-  for (int i=tl->count; i >= 0; --i)
+  for (int i=tl->count-1; i >= 0; i--)
   {
     if (table_equal(&tl->list[i], t))  return 1;
   }
@@ -392,13 +393,11 @@ struct avl_node_t *avl_from_file(int ncol, int nrow)
 int table_is_banned(struct avl_node_t *tree, struct table_t *t)
 {
   struct table_t *r = table_init(t->c, t->r);
-  for(int i=0; i<t->sz; i++)
-  { r->t[i] = t->t[i]; }
+  memcpy(r->t, t->t, sizeof(int[t->sz]));
 
   table_normalize(r);
 
   int retval = 0;
-
   struct avl_node_t *n = avl_search(tree, r);
   if (n != NULL)
   { 
@@ -434,7 +433,6 @@ int table_has_banned_subrank_of_dim(
       table_subtable(t, s, c, r);
       if( table_is_banned(tree, s) )
       {
-        fprintf(stderr, "banned subtable at (%i,%i)\n", c, r);
         retval=1; 
         goto _free_and_leave;
       }
