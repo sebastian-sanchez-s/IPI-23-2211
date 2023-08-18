@@ -9,8 +9,8 @@ void *listen_consumer(void *arg);
 void launch_consumer(int i);
 
 /* = producer consumer globals = */
-#define NUM_PRODUCER 1
-#define NUM_CONSUMER 1
+#define NUM_PRODUCER 2
+#define NUM_CONSUMER 7
 
 pthread_t G_producer[NUM_PRODUCER];
 struct consumer_data_t G_consumer_data[NUM_CONSUMER];
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
   if (G_ncol > 3 || G_nrow > 3)
   {
     G_avl_table = avl_from_file(3, 3); 
-    avl_print(G_avl_table);
+    //avl_print(G_avl_table);
   }
 
   //

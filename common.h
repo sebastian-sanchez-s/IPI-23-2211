@@ -16,6 +16,7 @@
 /* ================ */
 /* ==== MACROS ==== */ 
 /* ================ */
+#define BANNEDFMT "banned/c%ir%i"
 #define NFMT "raw/Nc%ir%i"
 #define PFMT "raw/Pc%ir%i"
 
@@ -58,15 +59,15 @@
 
 #define PRINTARR(f, a, si, sz)\
 {\
-  for(int k=si; k<si+sz-1; k++)\
-  { fprintf(f, "%i ", a[k]); }\
+  for(int _k=si; _k<si+sz-1; _k++)\
+  { fprintf(f, "%i ", a[_k]); }\
   fprintf(f, "%i\n", a[si+sz-1]);\
 }
 
 #define READARR(f, a, si, sz)\
 {\
-  for(int k=si; k<si+sz; k++)\
-  { fscanf(f, "%i", &a[k]); }\
+  for(int _k=si; _k<si+sz; _k++)\
+  { fscanf(f, "%i", &a[_k]); }\
 }
 
 #define _debug_flag 0

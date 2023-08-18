@@ -59,11 +59,11 @@ void* generate_table(void* param)
   // Once the table is filled, we start going backwards
   // trying every value posible.
   //
-  while (pos > 1)
+  while( pos > 1 )
   {
-    if (pos == G_sz-1)
+    if( pos == G_sz-1 )
     {
-      if (G_avl_table == NULL || !table_has_banned_subrank_of_dim(G_avl_table, 3, 3, &syt))
+      if( G_avl_table == NULL || !table_has_banned_subrank_of_dim(G_avl_table, 3, 3, &syt))
       {
         int c = queue_get(G_consumer2producer_queue);
 
@@ -75,10 +75,12 @@ void* generate_table(void* param)
         fflush(out);
         PRINTARR(out, rank.t, 1, G_sz);
         fflush(out);
-      } else {
-        fprintf(stderr, "banned\t");
-        PRINTARR(stderr, syt.t, 0, G_sz);
-      }
+      } 
+      //else 
+      //{
+      //  fprintf(stderr, "BANNED\t");
+      //  PRINTARR(stderr, syt.t, 0, G_sz);
+      //}
       pos -= 1;
     }
 

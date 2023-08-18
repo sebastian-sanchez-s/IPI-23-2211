@@ -34,26 +34,6 @@ void table_destroy(struct table_t *t)
  * Operations 
  **/
 
-void table_subtable(
-    struct table_t *t, 
-    struct table_t *s, 
-    int bcol, int brow)
-/* Save subtable of dim s starting at (bcol,brow) in t into s
- * 1 2 3 4   subtable      3 4
- * 5 6 7 8 - 2x2 at 2,0 -> 7 8
- */
-{
-  PANIKON(s->c > t->c || s->r > t->r, "subtable does not fit.");
-
-  for (int c=0; c < s->c; c++)
-  {
-    for (int r=0; r < s->r; r++)
-    {
-      s->t[r*s->c + c] = t->t[(r+brow)*t->c + c+bcol];
-    }
-  }
-}
-
 int __cmp__(void const *a, void const *b)
 { return (*(int*)a) - (*(int*)b); }
 void table_normalize(struct table_t *t)
@@ -317,7 +297,8 @@ void avl_destroy(struct avl_node_t **node)
   free(*node);
 }
 
-struct avl_node_t *avl_search_key(struct avl_node_t *node, int key)
+struct avl_node_t *
+avl_search_key(struct avl_node_t *node, int key)
 {
   if (!node) return NULL;
 
@@ -330,14 +311,16 @@ struct avl_node_t *avl_search_key(struct avl_node_t *node, int key)
   { return avl_search_key(node->left, key); }
 }
 
-struct avl_node_t *avl_search(struct avl_node_t *node, struct table_t *table)
+struct avl_node_t *
+avl_search(struct avl_node_t *node, struct table_t *table)
 {
   int key = table_fingerprint(table);
 
   return avl_search_key(node, key);
 }
 
-void avl_print(struct avl_node_t *node)
+void
+avl_print(struct avl_node_t *node)
 {
   if (!node) return;
 
@@ -353,10 +336,11 @@ void avl_print(struct avl_node_t *node)
   }
 }
 
-struct avl_node_t *avl_from_file(int ncol, int nrow)
+struct avl_node_t *
+avl_from_file(int ncol, int nrow)
 {
   char filename[50];
-  snprintf(filename, 49, NFMT, ncol, nrow);
+  snprintf(filename, 49, BANNEDFMT, ncol, nrow);
   FILE *f = fopen(filename, "r");
   PANIKON(f==NULL, "Error while attempting to read '%s'", filename);
   
@@ -390,57 +374,113 @@ struct avl_node_t *avl_from_file(int ncol, int nrow)
 /**
  * Properties
  **/
-int table_is_banned(struct avl_node_t *tree, struct table_t *t)
+int
+table_is_banned(struct avl_node_t *tree, struct table_t *t)
 {
+  /* TABOOS */
+  if(  t->t[0*t->c + 1] < t->t[1*t->c + 0]
+    && t->t[1*t->c + 2] < t->t[2*t->c + 1]
+    && t->t[2*t->c + 0] < t->t[0*t->c + 2]
+    )
+    return 1;
+
+  if(  t->t[0*t->c + 1] > t->t[1*t->c + 0]
+    && t->t[1*t->c + 2] > t->t[2*t->c + 1]
+    && t->t[2*t->c + 0] > t->t[0*t->c + 2]
+    )
+    return 1;
+
+  return 0;
+
+  /* Check for subtables */
+
   struct table_t *r = table_init(t->c, t->r);
   memcpy(r->t, t->t, sizeof(int[t->sz]));
 
   table_normalize(r);
 
-  int retval = 0;
   struct avl_node_t *n = avl_search(tree, r);
   if (n != NULL)
   { 
     if (table_list_find(n->tables, r))
     {
-      retval = 1;
-      goto _free_and_leave;
+      table_destroy(r);
+      return 1;
     }
   }
 
-_free_and_leave:;
-  table_destroy(r);
-  return retval;
+  return 0;
 }
 
-int table_has_banned_subrank_of_dim(
-    struct avl_node_t *tree,
-    int ncol, int nrow, 
-    struct table_t *t)
+int
+table_has_banned_subrank_of_dim(struct avl_node_t *tree, int ncol, int nrow, struct table_t *t)
 {
-  if (ncol > t->c || nrow > t->r)
-  {
-    return 0;
-  }
+  if( ncol > t->c || nrow > t->r ) return 0;
 
   struct table_t *s = table_init(ncol, nrow);
 
-  int retval = 0;
-  for (int c=0; c <= (t->c - ncol); c++)
+  /* Each column for the submatrix must satisfy
+   * 1 <= column0 <= ncol
+   * 2 <= column1 <= ncol + 1
+   * ...
+   * ncol <= columnK <= ncol + k <= nrow-ncol
+   * We let fix the first K-1 column and run out all posibilities for K.
+   * The procedure is repeated for K-2, ..., 1.
+   *
+   * Of course, the same applies for rows */
+  int *permcol; CALLOC(permcol, s->c, sizeof(int));
+  int *permrow; CALLOC(permrow, s->r, sizeof(int));
+
+  int i = 0;
+  while( i >= 0 )
   {
-    for(int r=0; r <= (t->r - nrow); r++)
+    if( i == s->c )
     {
-      table_subtable(t, s, c, r);
-      if( table_is_banned(tree, s) )
+      int j = 0;
+      memset(permrow, 0, sizeof(int[s->r]));
+      while( j >= 0 )
       {
-        retval=1; 
-        goto _free_and_leave;
+        if( j == s->r )
+        {
+          /* Get subtable */
+          for( int c=0; c < s->c; c++ )
+          {
+            for( int r=0; r < s->r; r++ )
+            {
+              s->t[r*s->c + c] = t->t[permrow[r]*t->c + permcol[c]];
+            }
+          }
+
+          if( table_is_banned(tree, s) )
+          {
+            table_destroy(s);
+            free(permcol); 
+            free(permrow);
+            return 1;
+          }
+        }
+
+        if( j >= s->r || permrow[j] > t->r - s->r + j )
+        {
+          if( --j >= 0 ) permrow[j] += 1;
+        }
+        else
+        {
+          if( ++j < s->r ) permrow[j] = permrow[j-1] + 1;
+        }
       }
+    }
+
+    if( i >= s->c || permcol[i] > t->c - s->c + i )
+    {
+      if( --i >= 0 ) permcol[i] +=  1;
+    }
+    else
+    {
+      if( ++i < s->c ) permcol[i] = permcol[i-1] + 1;
     }
   }
 
-_free_and_leave:;
-  table_destroy(s);
-  return retval;
+  return 0;
 }
 
