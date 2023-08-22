@@ -35,7 +35,8 @@ Ejecutar:
 ```sh
 make run NCOL=<nro_columnas> NROW=<nro_filas>
 ```
-> Este comando crea el directorio `raw` con los datos dentro.
+> Este comando crea el directorio `raw` con los datos dentro y `banned` 
+> con las tablas malas que no tienen subtablas malas.
 
 
 #### Algoritmo
@@ -94,7 +95,7 @@ está listo se posiciona en la cola, mientras que cuando un productor
 está listo saca "un consumidor" de la cola y le envía la información
 necesaria para resolver la tabla.
 
-#### [:x:] Preanálisis (implementando)
+#### [✔️:] Preanálisis
 
 Aquí se usa el hecho de que las tablas que tienen subtablas cuyo
 rango es una tabla mala, entonces la tabla grande es mala.
@@ -113,3 +114,10 @@ Nodo:
     key
     tablas [lista de tablas que tienen la misma key]
 ```
+
+#### [:x:] Rolling hash
+
+#### [:x:] Desigualdades parciales y matar ramas malas
+
+#### [:x:] Optimizar las forma de armar el rango
+Ojalá tener algo a lo más cuadrático sobre el tamaño de la tabla.
