@@ -16,12 +16,16 @@ void* generate_table(void* param)
   int i = ((struct producer_param_t*) param)->i;
   int seed = ((struct producer_param_t*) param)->seed;
 
-  struct table_t syt   = (struct table_t){.c=G_ncol, .r=G_nrow, .sz=G_sz, .t=&G_arr[i*G_sz]};
-  struct table_t taken = (struct table_t){.c=G_ncol, .r=G_nrow, .sz=G_sz+1, .t=&G_tkn[i*(G_sz+1)]};
-  struct table_t rank  = (struct table_t){.c=G_ncol, .r=G_nrow, .sz=G_sz+1, .t=&G_rnk[i*(G_sz+1)]};
+  struct table_t syt   = (struct table_t) { .c=G_ncol, 
+                                            .r=G_nrow, 
+                                            .sz=G_sz, 
+                                            .t=&G_arr[i*G_sz]};
+  struct table_t taken = (struct table_t){ .c=G_ncol, 
+                                           .r=G_nrow, 
+                                           .sz=G_sz+1, 
+                                           .t=&G_tkn[i*(G_sz+1)]};
 
   table_set_all(&taken, 0);
-  table_set_all(&rank, 0);
 
   syt.t[0] = 1;
   syt.t[1] = seed;
@@ -31,9 +35,7 @@ void* generate_table(void* param)
   taken.t[seed] = 1;
   taken.t[G_sz] = 1;
 
-  rank.t[1] = 0;
-  rank.t[seed] = 1;
-  rank.t[G_sz] = G_sz-1;
+  struct table_t *rank = table_init(G_ncol, G_nrow);
 
   //
   // Fill table with minimal configuration.
@@ -49,7 +51,6 @@ void* generate_table(void* param)
     {
       syt.t[pos] = t;
       taken.t[t] = 1;
-      rank.t[t] = pos;
       pos += 1;
       t = G_min[pos];
     }
@@ -63,17 +64,25 @@ void* generate_table(void* param)
   {
     if( pos == G_sz-1 )
     {
-      if( G_avl_table == NULL || !table_has_banned_subrank_of_dim(G_avl_table, 3, 3, &syt))
+      //
+      // Only set a table if it does not have any
+      // bad subtable
+      //
+      if( G_avl_table == NULL
+          || !table_has_banned_subrank_of_dim(G_avl_table, 3, 3, &syt) )
       {
         int c = queue_get(G_consumer2producer_queue);
 
         // Send data to consumer 
-        FILE *out = G_consumer_data[c].fs_w;
-        PANIKON(out==NULL, "fs_w of %i is null\n", c);
+        FILE *out = G_consumer_data[c].fs_w; PANIKON(out==NULL, "fs_w of %i is null\n", c);
+
         fprintf(out, "1\n");
         PRINTARR(out, syt.t, 0, G_sz);
         fflush(out);
-        PRINTARR(out, rank.t, 1, G_sz);
+
+        memcpy(rank->t, syt.t, sizeof(int[G_sz]));
+        table_linked_rank(rank);
+        PRINTARR(out, rank->t, 0, rank->sz);
         fflush(out);
       } 
       //else 
@@ -87,7 +96,8 @@ void* generate_table(void* param)
     int imax = G_max[pos];
     t = syt.t[pos] > 0 ? syt.t[pos]: G_min[pos];
 
-    while (t <= imax && (taken.t[t] || bad_neighbors(t, syt.t, pos)))
+    while( t <= imax 
+        && ( taken.t[t] || bad_neighbors(t, syt.t, pos)) )
     {
       t++;
     }
@@ -102,10 +112,11 @@ void* generate_table(void* param)
     {
       syt.t[pos] = t;
       taken.t[t] = 1;
-      rank.t[t] = pos;
       pos += 1;
     }
   }
+
+  table_destroy(rank);
 
   queue_put(G_producer_threads_queue, i);
   pthread_exit(NULL);

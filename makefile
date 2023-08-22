@@ -32,6 +32,7 @@ clean:
 run: obj/a.out
 	mkdir -p raw
 	./obj/a.out $(NCOL) $(NROW)
+	cat ./raw/Nc$(NCOL)r$(NROW)* > banned/c$(NCOL)r$(NROW)
 
 pdf: $(wildcard raw/$(STAMP)t*)
 	mkdir -p tex

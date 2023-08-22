@@ -26,7 +26,6 @@ int G_nrow, G_ncol, G_sz;
 int *G_min, *G_max;
 
 int *G_arr;
-int *G_rnk;
 int *G_tkn;
 
 struct avl_node_t *G_avl_table = NULL;
@@ -64,7 +63,6 @@ int main(int argc, char *argv[])
   // Allocate enough memory at once
   //
   MALLOC(G_arr, sizeof(int[NUM_PRODUCER][G_sz]));
-  MALLOC(G_rnk, sizeof(int[NUM_PRODUCER][G_sz+1]));
   MALLOC(G_tkn, sizeof(int[NUM_PRODUCER][G_sz+1]));
 
   G_producer_threads_queue  = queue_init(NUM_PRODUCER);
@@ -139,11 +137,12 @@ int main(int argc, char *argv[])
   free(G_max);
 
   free(G_arr);
-  free(G_rnk);
   free(G_tkn);
 
   queue_destroy(G_producer_threads_queue);
   queue_destroy(G_consumer2producer_queue);
+
+  avl_destroy(&G_avl_table);
 
   return 0;
 }

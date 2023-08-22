@@ -14,7 +14,7 @@ int table_get_cr(int c, int r, struct table_t *t)
 { return t->t[r*t->c + c]; }
 
 void table_set_all(struct table_t *t, int val)
-{ for (int i=0; i<t->sz; i++) { t->t[i] = val; } }
+{ memset(t->t, val, sizeof(int[t->sz])); }
 
 struct table_t *table_init(int ncol, int nrow)
 {
@@ -36,6 +36,7 @@ void table_destroy(struct table_t *t)
 
 int __cmp__(void const *a, void const *b)
 { return (*(int*)a) - (*(int*)b); }
+
 void table_normalize(struct table_t *t)
 /* Replace with relative order.
  *  5 4 1     3 2 0
@@ -43,7 +44,7 @@ void table_normalize(struct table_t *t)
  * */
 {
   int *relorder = i_sorted(t->sz, t->t);
-
+  
   for (int i=0; i<t->sz; i++)
   {
     int irank;
@@ -54,6 +55,23 @@ void table_normalize(struct table_t *t)
   free(relorder);
 }
 
+void
+table_linked_rank(struct table_t *t)
+{
+  struct table_t *r = table_init(t->c, t->r);
+  
+  memcpy(r->t, t->t, sizeof(int[r->sz]));
+
+  table_normalize(r);
+
+  for (int i=0; i<t->sz; i++)
+  {
+    t->t[r->t[i]] = i;
+  }
+
+  table_destroy(r);
+}
+
 int table_fingerprint(struct table_t *t)
 {
   int fingerprint = 0;
@@ -61,7 +79,7 @@ int table_fingerprint(struct table_t *t)
   {
     for (int j=0; j < t->r; j++,k++)
     {
-      fingerprint = (fingerprint * 11 + t->t[k]) % 12289;
+      fingerprint = fingerprint * 10 + t->t[k];
     }
   }
 
@@ -90,7 +108,7 @@ int table_equal(struct table_t *t1, struct table_t *t2)
 struct table_list_t {
   int capacity;
   int count;
-  struct table_t *list;
+  struct table_t **list;
 };
 
 struct table_list_t *table_list_init(struct table_t *t)
@@ -103,17 +121,17 @@ struct table_list_t *table_list_init(struct table_t *t)
     .count = 1
   };
 
-  MALLOC(tl->list, sizeof(struct table_t[tl->capacity]));
-  tl->list[0] = *t;
+  MALLOC(tl->list, sizeof(struct table_t *[tl->capacity]));
+  tl->list[0] = t;
 
   return tl;
 }
 
 void table_list_destroy(struct table_list_t *tl)
 {
-  while (--(tl->count) >= 0)
+  while( --(tl->count) >= 0 )
   {
-    free(tl->list[tl->count].t);
+    table_destroy(tl->list[tl->count]);
   }
   free(tl->list);
   free(tl);
@@ -126,9 +144,9 @@ int table_list_get_size(struct table_list_t *tl)
 
 int table_list_find(struct table_list_t *tl, struct table_t *t)
 {
-  for (int i=tl->count-1; i >= 0; i--)
+  for( int i=tl->count-1; i >= 0; i-- )
   {
-    if (table_equal(&tl->list[i], t))  return 1;
+    if( table_equal(tl->list[i], t) )  return 1;
   }
 
   return 0;
@@ -136,19 +154,19 @@ int table_list_find(struct table_list_t *tl, struct table_t *t)
 
 void table_list_append(struct table_list_t *tl, struct table_t *t)
 {
-  if (tl->count >= tl->capacity)
+  if( tl->count >= tl->capacity )
   {
     tl->capacity += 20;
-    REALLOC(tl->list, sizeof(struct table_t[tl->capacity]));
+    REALLOC(tl->list, tl->capacity * sizeof(*(tl->list)));
   }
 
-  tl->list[tl->count] = *t;
+  tl->list[tl->count] = t;
   tl->count += 1;
 }
 
 struct table_t *table_list_at(struct table_list_t *tl, int i)
 {
-  return &tl->list[i];
+  return tl->list[i];
 }
 
 /**
@@ -163,7 +181,8 @@ struct avl_node_t {
   struct avl_node_t *left, *right;
 };
 
-struct avl_node_t *avl_init(int key, struct table_t *table)
+struct avl_node_t *
+avl_init(int key, struct table_t *table)
 {
   struct avl_node_t *node;
   MALLOC(node, sizeof(*node));
@@ -180,20 +199,21 @@ struct avl_node_t *avl_init(int key, struct table_t *table)
   return node;
 }
 
-void avl_insert(struct avl_node_t **node, int key, struct table_t *table)
+void 
+avl_insert(struct avl_node_t **node, int key, struct table_t *table)
 {
-  if (!(*node))
+  if( (*node)==NULL )
   {
     *node = avl_init(key, table);
     return;
   }
 
   int diff = key - (*node)->key; //
-  if (diff == 0)
+  if( diff == 0 )
   {
     table_list_append((*node)->tables, table);
   }
-  else if (diff > 0)
+  else if( diff > 0 )
   {
     avl_insert(&(*node)->right, key, table);
   }
@@ -205,22 +225,24 @@ void avl_insert(struct avl_node_t **node, int key, struct table_t *table)
   avl_rebalance(node);
 }
 
-void avl_update_depth(struct avl_node_t *node)
+void
+avl_update_depth(struct avl_node_t *node)
 {
   node->depth = 0;
-  if (node->left)
+  if( node->left )
   { node->depth = node->left->depth; }
   
-  if (node->right)
+  if( node->right )
   {
-    if (node->right->depth > node->depth)
+    if( node->right->depth > node->depth )
     { node->depth = node->right->depth; }
   }
 
   node->depth += 1;
 }
 
-void avl_rotate_left(struct avl_node_t **node)
+void
+avl_rotate_left(struct avl_node_t **node)
 /*
  * N
  *  \        M
@@ -238,7 +260,8 @@ void avl_rotate_left(struct avl_node_t **node)
   avl_update_depth(*node);
 }
 
-void avl_rotate_right(struct avl_node_t **node)
+void 
+avl_rotate_right(struct avl_node_t **node)
 /*
  *     N
  *    /      M
@@ -256,29 +279,33 @@ void avl_rotate_right(struct avl_node_t **node)
   avl_update_depth(*node);
 }
 
-int avl_balance_factor(struct avl_node_t *node)
+int 
+avl_balance_factor(struct avl_node_t *node)
 {
   int balance_factor = 0;
-  if (node->left) balance_factor = node->left->depth;
-  if (node->right) balance_factor = node->right->depth;
+  if( node->left ) 
+  { balance_factor = node->left->depth; }
+  if( node->right ) 
+  { balance_factor = node->right->depth; }
   return balance_factor;
 }
 
-void avl_rebalance(struct avl_node_t **node)
+void 
+avl_rebalance(struct avl_node_t **node)
 {
   int balance_factor = avl_balance_factor(*node);
 
-  if (balance_factor == 2)
+  if( balance_factor == 2 )
   {
-    if (avl_balance_factor((*node)->left) < 0)
+    if( avl_balance_factor((*node)->left) < 0 )
     {
       avl_rotate_left(&(*node)->left);
     }
     avl_rotate_right(node);
   }
-  else if (balance_factor == -2)
+  else if( balance_factor == -2 )
   {
-    if (avl_balance_factor((*node)->right) > 0)
+    if( avl_balance_factor((*node)->right) > 0 )
     {
       avl_rotate_right(&(*node)->right);
     }
@@ -286,12 +313,15 @@ void avl_rebalance(struct avl_node_t **node)
   }
 }
 
-void avl_destroy(struct avl_node_t **node)
+void 
+avl_destroy(struct avl_node_t **node)
 {
-  if (!node) return;
+  if( node==NULL ) return;
 
-  if ((*node)->left) avl_destroy(&((*node)->left));
-  if ((*node)->right) avl_destroy(&((*node)->right));
+  if( (*node)->left ) 
+  { avl_destroy(&((*node)->left)); }
+  if( (*node)->right ) 
+  { avl_destroy(&((*node)->right)); }
 
   table_list_destroy((*node)->tables);
   free(*node);
@@ -346,22 +376,22 @@ avl_from_file(int ncol, int nrow)
   
   struct avl_node_t *root = NULL;
 
-  char line[512];
-  while (fgets(line, sizeof(line), f) != NULL)
+  char line[100];
+  while( fgets(line, sizeof(line), f) != NULL )
   {
     char *ite = line;
-    int arr[512];
+    int arr[100];
     int shift;
     
     int i=0;
-    while (sscanf(ite, "%i%n", &arr[i], &shift) == 1)
+    while( sscanf(ite, "%i%n", &arr[i], &shift) == 1 )
     {
       i++;
       ite += shift;
     }
 
     struct table_t *table = table_init(ncol, nrow);
-    memcpy(table->t, arr, i * sizeof(int));
+    memcpy(table->t, arr, sizeof(int[table->sz]));
     
     avl_insert(&root, table_fingerprint(table), table);
   }
@@ -377,39 +407,22 @@ avl_from_file(int ncol, int nrow)
 int
 table_is_banned(struct avl_node_t *tree, struct table_t *t)
 {
-  /* TABOOS */
-  if(  t->t[0*t->c + 1] < t->t[1*t->c + 0]
-    && t->t[1*t->c + 2] < t->t[2*t->c + 1]
-    && t->t[2*t->c + 0] < t->t[0*t->c + 2]
-    )
-    return 1;
-
-  if(  t->t[0*t->c + 1] > t->t[1*t->c + 0]
-    && t->t[1*t->c + 2] > t->t[2*t->c + 1]
-    && t->t[2*t->c + 0] > t->t[0*t->c + 2]
-    )
-    return 1;
-
-  return 0;
-
-  /* Check for subtables */
-
   struct table_t *r = table_init(t->c, t->r);
   memcpy(r->t, t->t, sizeof(int[t->sz]));
 
-  table_normalize(r);
+  table_linked_rank(r);
 
+  int retval = 0;
   struct avl_node_t *n = avl_search(tree, r);
   if (n != NULL)
   { 
     if (table_list_find(n->tables, r))
-    {
-      table_destroy(r);
-      return 1;
-    }
+    { retval=1; goto _exit; }
   }
 
-  return 0;
+_exit:;
+  table_destroy(r);
+  return retval;
 }
 
 int
@@ -432,6 +445,7 @@ table_has_banned_subrank_of_dim(struct avl_node_t *tree, int ncol, int nrow, str
   int *permrow; CALLOC(permrow, s->r, sizeof(int));
 
   int i = 0;
+  int retval = 0;
   while( i >= 0 )
   {
     if( i == s->c )
@@ -447,16 +461,14 @@ table_has_banned_subrank_of_dim(struct avl_node_t *tree, int ncol, int nrow, str
           {
             for( int r=0; r < s->r; r++ )
             {
-              s->t[r*s->c + c] = t->t[permrow[r]*t->c + permcol[c]];
+              s->t[r*(s->c) + c] = t->t[permrow[r]*(t->c) + permcol[c]];
             }
           }
 
           if( table_is_banned(tree, s) )
           {
-            table_destroy(s);
-            free(permcol); 
-            free(permrow);
-            return 1;
+            retval = 1;
+            goto _exit;
           }
         }
 
@@ -481,6 +493,10 @@ table_has_banned_subrank_of_dim(struct avl_node_t *tree, int ncol, int nrow, str
     }
   }
 
-  return 0;
+_exit:;
+  table_destroy(s);
+  free(permcol); 
+  free(permrow);
+  return retval;
 }
 
