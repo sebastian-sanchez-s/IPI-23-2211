@@ -1,4 +1,5 @@
 res/
+consumer
 **/*.out
 **/obj/
 **/tex/
