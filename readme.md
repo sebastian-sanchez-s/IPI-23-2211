@@ -95,7 +95,7 @@ está listo se posiciona en la cola, mientras que cuando un productor
 está listo saca "un consumidor" de la cola y le envía la información
 necesaria para resolver la tabla.
 
-#### [✔️:] Preanálisis
+#### [✔️] Preanálisis
 
 Aquí se usa el hecho de que las tablas que tienen subtablas cuyo
 rango es una tabla mala, entonces la tabla grande es mala.
@@ -119,5 +119,4 @@ Nodo:
 
 #### [:x:] Desigualdades parciales y matar ramas malas
 
-#### [:x:] Optimizar las forma de armar el rango
-Ojalá tener algo a lo más cuadrático sobre el tamaño de la tabla.
+#### [✔️] Optimizar las forma de armar el rango
