@@ -68,8 +68,8 @@ void* generate_table(void* param)
       // Only set a table if it does not have any
       // bad subtable
       //
-      if( G_avl_table == NULL
-          || !table_has_banned_subrank_of_dim(G_avl_table, 3, 3, &syt) )
+      if( G_avl_banned_tables == NULL 
+          || !table_has_banned_subtable(G_avl_banned_tables, &syt) )
       {
         int c = queue_get(G_consumer2producer_queue);
 

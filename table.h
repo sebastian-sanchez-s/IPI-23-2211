@@ -30,7 +30,7 @@ void table_list_append(struct table_list_t *tl, struct table_t *t);
 struct table_t *table_list_at(struct table_list_t *tl, int i);
 
 
-/** AVL Tree for tables **/
+/** AVL tree for tables **/
 struct avl_node_t;
 
 struct avl_node_t *avl_init(int key, struct table_t *table);
@@ -44,9 +44,11 @@ void avl_destroy(struct avl_node_t **node);
 struct avl_node_t *avl_search_key(struct avl_node_t *node, int key);
 struct avl_node_t *avl_search(struct avl_node_t *node, struct table_t *table);
 void avl_print(struct avl_node_t *node);
-struct avl_node_t *avl_from_file(int ncol, int nrow);
+struct avl_node_t *avl_init_from_banned(int ncol, int nrow);
+void avl_from_file(struct avl_node_t **root, int ncol, int nrow);
 
 /** Properties **/
-int table_is_banned(struct avl_node_t *tree, struct table_t *t);
-int table_has_banned_subrank_of_dim(struct avl_node_t *tree, int ncol, int nrow, struct table_t *t);
+int table_is_banned(struct avl_node_t *root, struct table_t *t);
+int table_has_banned_subtable(struct avl_node_t *root, struct table_t *t);
+int table_has_banned_subrank_of_dim(struct avl_node_t *root, int ncol, int nrow, struct table_t *t);
 int table_equal(struct table_t *t1, struct table_t *t2);

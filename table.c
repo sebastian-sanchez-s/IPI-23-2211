@@ -200,7 +200,7 @@ avl_insert(struct avl_node_t **node, int key, struct table_t *table)
     return;
   }
 
-  int diff = key - (*node)->key; //
+  int diff = key - (*node)->key;
   if( diff == 0 )
   {
     table_list_append((*node)->tables, table);
@@ -358,15 +358,14 @@ avl_print(struct avl_node_t *node)
   }
 }
 
-struct avl_node_t *
-avl_from_file(int ncol, int nrow)
+void
+avl_from_file(struct avl_node_t **root, int ncol, int nrow)
 {
   char filename[50];
   snprintf(filename, 49, BANNEDFMT, ncol, nrow);
   FILE *f = fopen(filename, "r");
-  PANIKON(f==NULL, "Error while attempting to read '%s'", filename);
-  
-  struct avl_node_t *root = NULL;
+  //PANIKON(f==NULL, "Cannot open '%s'", filename);
+  if( f==NULL ) return;
 
   char line[100];
   while( fgets(line, sizeof(line), f) != NULL )
@@ -385,10 +384,25 @@ avl_from_file(int ncol, int nrow)
     struct table_t *table = table_init(ncol, nrow);
     memcpy(table->t, arr, sizeof(int[table->sz]));
     
-    avl_insert(&root, table_fingerprint(table), table);
+    avl_insert(root, table_fingerprint(table), table);
   }
 
   fclose(f);
+}
+
+struct avl_node_t *
+avl_init_from_banned(int ncol, int nrow)
+/* Load banned subtables that fit in the table of 
+ * size ncolxnrow.
+ * */
+{
+  struct avl_node_t *root = NULL;
+
+  do {
+    do {
+      avl_from_file(&root, ncol, nrow);
+    } while(--nrow >= 3);
+  } while(--ncol >= 3);
 
   return root;
 }
@@ -397,7 +411,7 @@ avl_from_file(int ncol, int nrow)
  * Properties
  **/
 int
-table_is_banned(struct avl_node_t *tree, struct table_t *t)
+table_is_banned(struct avl_node_t *root, struct table_t *t)
 {
   struct table_t *r = table_init(t->c, t->r);
   memcpy(r->t, t->t, sizeof(int[t->sz]));
@@ -405,7 +419,7 @@ table_is_banned(struct avl_node_t *tree, struct table_t *t)
   table_linked_rank(r);
 
   int retval = 0;
-  struct avl_node_t *n = avl_search(tree, r);
+  struct avl_node_t *n = avl_search(root, r);
   if (n != NULL)
   { 
     if (table_list_find(n->tables, r))
@@ -418,7 +432,23 @@ _exit:;
 }
 
 int
-table_has_banned_subrank_of_dim(struct avl_node_t *tree, int ncol, int nrow, struct table_t *t)
+table_has_banned_subtable(struct avl_node_t *root, struct table_t *t)
+{
+  if( t->c <= 3 && t->r <= 3) return 0;
+
+  for(int c=3; c <= t->c; c++)
+  {
+    for(int r=3; r <= t->r; r++)
+    {
+      if( table_has_banned_subrank_of_dim(root, c, r, t) )
+      { return 1; }
+    }
+  }
+  return 0;
+}
+
+int
+table_has_banned_subrank_of_dim(struct avl_node_t *root, int ncol, int nrow, struct table_t *t)
 {
   if( ncol > t->c || nrow > t->r ) return 0;
 
@@ -457,7 +487,7 @@ table_has_banned_subrank_of_dim(struct avl_node_t *tree, int ncol, int nrow, str
             }
           }
 
-          if( table_is_banned(tree, s) )
+          if( table_is_banned(root, s) )
           {
             retval = 1;
             goto _exit;

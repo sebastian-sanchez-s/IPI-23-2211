@@ -27,7 +27,7 @@ int *G_min, *G_max;
 int *G_arr;
 int *G_tkn;
 
-struct avl_node_t *G_avl_table = NULL;
+struct avl_node_t *G_avl_banned_tables = NULL;
 
 int main(int argc, char *argv[])
 {
@@ -72,7 +72,8 @@ int main(int argc, char *argv[])
   //
   if (G_ncol > 3 || G_nrow > 3)
   {
-    G_avl_table = avl_from_file(3, 3); 
+    G_avl_banned_tables = avl_init_from_banned(G_ncol, G_nrow);
+    //G_avl_table = avl_from_file(3, 3); 
     //avl_print(G_avl_table);
   }
 
@@ -141,7 +142,7 @@ int main(int argc, char *argv[])
   queue_destroy(G_producer_threads_queue);
   queue_destroy(G_consumer2producer_queue);
 
-  avl_destroy(&G_avl_table);
+  if( G_avl_banned_tables!=NULL ) avl_destroy(&G_avl_banned_tables);
 
   return 0;
 }

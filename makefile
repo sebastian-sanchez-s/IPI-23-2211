@@ -32,6 +32,24 @@ run: obj/a.out
 	mkdir -p raw
 	./obj/a.out $(NCOL) $(NROW)
 	cat ./raw/Nc$(NCOL)r$(NROW)* > banned/c$(NCOL)r$(NROW)
+	sort -o banned/c$(NCOL)r$(NROW){,}
+
+runseq: obj/a.out
+	mkdir -p raw
+	c=3 ; while [[ $$c -le $(NCOL) ]] ; do \
+		r=3 ; while [[ $$r -le $(NROW) ]] ; do \
+			echo "Runing "$$c"x"$$r ; \
+			if [[ -f banned/c$$c"r"$$r ]] ; then \
+				(( r = r + 1 )) ; \
+				continue ; \
+			fi ; \
+			./obj/a.out $$c $$r ; \
+			cat ./raw/Nc$$c"r"$$r* > banned/c$$c"r"$$r ; \
+			sort -o banned/c$$c"r"$$r{,} ; \
+			(( r = r + 1 )) ; \
+		done ; \
+		(( c = c + 1 )) ; \
+	done
 
 pdf: $(wildcard raw/$(STAMP)t*)
 	mkdir -p tex
