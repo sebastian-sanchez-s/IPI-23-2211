@@ -1,6 +1,5 @@
 #include <limits.h>
 #include "common.h"
-#include "sort_search_utils.h"
 #include "table.h"
 
 /**

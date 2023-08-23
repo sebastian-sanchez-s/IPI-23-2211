@@ -17,7 +17,6 @@ struct consumer_data_t G_consumer_data[NUM_CONSUMER];
 struct producer_param_t G_producer_params[NUM_PRODUCER];
 
 /* = queue globals = */
-#define QUEUE_SIZE 2000
 struct queue_t *G_producer_threads_queue;
 struct queue_t *G_consumer2producer_queue;
 
@@ -66,7 +65,7 @@ int main(int argc, char *argv[])
   MALLOC(G_tkn, sizeof(int[NUM_PRODUCER][G_sz+1]));
 
   G_producer_threads_queue  = queue_init(NUM_PRODUCER);
-  G_consumer2producer_queue = queue_init(QUEUE_SIZE);
+  G_consumer2producer_queue = queue_init(NUM_CONSUMER);
 
   //
   // Build avl tree

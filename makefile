@@ -7,8 +7,7 @@ LD=-L. -I./cddlib/lib-src/ -L./cddlib/lib-src/.libs/ -pthread -lcdd
 SRCS=main.c\
 		 producer.c\
 		 queue.c\
-		 table.c\
-		 sort_search_utils.c\
+		 table.c
 
 OBJS=$(patsubst %.c,obj/%.o,$(SRCS))
 
