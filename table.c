@@ -34,42 +34,35 @@ void table_destroy(struct table_t *t)
  * Operations 
  **/
 
-int __cmp__(void const *a, void const *b)
-{ return (*(int*)a) - (*(int*)b); }
-
-void table_normalize(struct table_t *t)
-/* Replace with relative order.
- *  5 4 1     3 2 0
- *  9 8 2  -> 5 4 1
- * */
-{
-  int *relorder = i_sorted(t->sz, t->t);
-  
-  for (int i=0; i<t->sz; i++)
-  {
-    int irank;
-    i_bsearchi(t->sz, relorder, t->t[i], &irank);
-    t->t[i] = irank;
-  }
-
-  free(relorder);
+int __rank_cmp__(void const *a, void const *b)
+{ 
+  int *n = *(int**) a;
+  int *m = *(int**) b;
+  return n[0] - m[0]; 
 }
 
 void
 table_linked_rank(struct table_t *t)
 {
-  struct table_t *r = table_init(t->c, t->r);
-  
-  memcpy(r->t, t->t, sizeof(int[r->sz]));
-
-  table_normalize(r);
-
-  for (int i=0; i<t->sz; i++)
+  int **arr, *tuple; 
+  MALLOC(arr, sizeof(int*[t->sz]));
+  MALLOC(tuple, sizeof(int[t->sz][2]));
+  for( int i=0; i<t->sz; i++)
   {
-    t->t[r->t[i]] = i;
+    arr[i] = tuple + 2*i;
+    arr[i][0] = t->t[i];
+    arr[i][1] = i;
   }
 
-  table_destroy(r);
+  qsort(arr, t->sz, sizeof(int*), __rank_cmp__);
+
+  for( int i=0; i < t->sz; i++)
+  {
+    t->t[i] = arr[i][1];
+  }
+
+  free(tuple);
+  free(arr);
 }
 
 int table_fingerprint(struct table_t *t)
@@ -499,4 +492,3 @@ _exit:;
   free(permrow);
   return retval;
 }
-
