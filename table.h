@@ -49,6 +49,6 @@ void avl_from_file(struct avl_node_t **root, int ncol, int nrow);
 
 /** Properties **/
 int table_is_banned(struct avl_node_t *root, struct table_t *t);
-int table_has_banned_subtable(struct avl_node_t *root, struct table_t *t);
-int table_has_banned_subrank_of_dim(struct avl_node_t *root, int ncol, int nrow, struct table_t *t);
+int table_find_banned_subtable(struct avl_node_t *root, struct table_t *t);
+int table_find_banned_subrank_of_dim(struct avl_node_t *root, int ncol, int nrow, struct table_t *t);
 int table_equal(struct table_t *t1, struct table_t *t2);

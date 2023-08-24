@@ -68,8 +68,8 @@ void* generate_table(void* param)
       // Only set a table if it does not have any
       // bad subtable
       //
-      if( G_avl_banned_tables == NULL 
-          || !table_has_banned_subtable(G_avl_banned_tables, &syt) )
+      int banpos = table_find_banned_subtable(G_avl_banned_tables, &syt);
+      if( banpos < 0 )
       {
         int c = queue_get(G_consumer2producer_queue);
 
@@ -84,13 +84,17 @@ void* generate_table(void* param)
         table_linked_rank(rank);
         PRINTARR(out, rank->t, 0, rank->sz);
         fflush(out);
+
+        pos -= 1;
       } 
-      //else 
-      //{
-      //  fprintf(stderr, "BANNED\t");
-      //  PRINTARR(stderr, syt.t, 0, G_sz);
-      //}
-      pos -= 1;
+      else 
+      {
+        while( --pos > banpos )
+        {
+          taken.t[syt.t[pos]] = 0;
+          syt.t[pos] = 0;
+        }
+      }
     }
 
     int imax = G_max[pos];

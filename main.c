@@ -10,7 +10,7 @@ void launch_consumer(int i);
 
 /* = producer consumer globals = */
 #define NUM_PRODUCER 4
-#define NUM_CONSUMER 5
+#define NUM_CONSUMER 4
 
 pthread_t G_producer[NUM_PRODUCER];
 struct consumer_data_t G_consumer_data[NUM_CONSUMER];
@@ -116,6 +116,10 @@ int main(int argc, char *argv[])
                    &G_producer_params[i]);
     seed++;
   }
+
+  //
+  // Gather everything back
+  //
 
   for (int i=0; i<NUM_PRODUCER; i++)
   { pthread_join(G_producer[i], NULL); }

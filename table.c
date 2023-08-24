@@ -465,7 +465,7 @@ _exit:;
 }
 
 int
-table_has_banned_subtable(struct avl_node_t *root, struct table_t *t)
+table_find_banned_subtable(struct avl_node_t *root, struct table_t *t)
 /* INPUT
  * --------
  *  - root : avl tree root that contains banned tables.
@@ -473,24 +473,27 @@ table_has_banned_subtable(struct avl_node_t *root, struct table_t *t)
  *
  * OUPUT
  * --------
- *  returns 1 if table is banned. 0 otherwise.
+ *  index (bottom right) of the first banned subtable identified.
+ *  -1 if no subtable is found.
  * */
 {
-  if( t->c <= 3 && t->r <= 3) return 0;
+  if( root==NULL ) return -1;
+  if( t->c <= 3 && t->r <= 3) return -1;
 
   for(int c=3; c <= t->c; c++)
   {
     for(int r=3; r <= t->r; r++)
     {
-      if( table_has_banned_subrank_of_dim(root, c, r, t) )
-      { return 1; }
+      int i = table_find_banned_subrank_of_dim(root, c, r, t);
+      if( i >= 0 )
+      { return i; }
     }
   }
-  return 0;
+  return -1;
 }
 
 int
-table_has_banned_subrank_of_dim(struct avl_node_t *root, int ncol, int nrow, struct table_t *t)
+table_find_banned_subrank_of_dim(struct avl_node_t *root, int ncol, int nrow, struct table_t *t)
 /* ALGORITHM
  * ---------
  * Each column for the submatrix must satisfy
@@ -511,18 +514,23 @@ table_has_banned_subrank_of_dim(struct avl_node_t *root, int ncol, int nrow, str
  *
  * OUTPUT
  * --------
- * 0 is table has no banned dimension. 1 otherwise
+ *  index (bottom right) of the first banned subtable identified.
+ *  -1 if no subtable is found.
  * */
 {
-  if( ncol > t->c || nrow > t->r ) return 0;
+  int retval = -1; 
+
+  if( root==NULL || ncol > t->c || nrow > t->r ) return retval;
 
   struct table_t *s = table_init(ncol, nrow);
 
   int *permcol; CALLOC(permcol, s->c, sizeof(int));
   int *permrow; CALLOC(permrow, s->r, sizeof(int));
 
+  //
+  // Permute columns and rows
+  //
   int i = 0;
-  int retval = 0;
   while( i >= 0 )
   {
     if( i == s->c )
@@ -544,7 +552,7 @@ table_has_banned_subrank_of_dim(struct avl_node_t *root, int ncol, int nrow, str
 
           if( table_is_banned(root, s) )
           {
-            retval = 1;
+            retval = permrow[(s->r)-1]*(t->c) + permcol[(s->c)-1];
             goto _exit;
           }
         }
