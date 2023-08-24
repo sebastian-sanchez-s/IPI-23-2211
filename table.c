@@ -2,22 +2,18 @@
 #include "common.h"
 #include "table.h"
 
-/**
- * Primitives
- **/
-
-void table_set_cr(int c, int r, struct table_t *t, int val)
-{ t->t[r*t->c + c] = val; }
-
-int table_get_cr(int c, int r, struct table_t *t)
-{ return t->t[r*t->c + c]; }
+//
+// Primitives
+//
 
 void table_set_all(struct table_t *t, int val)
 { memset(t->t, val, sizeof(int[t->sz])); }
 
 struct table_t *table_init(int ncol, int nrow)
+/* Returns a table with ncol and nrow. */
 {
-  PANIKON(((ncol <= 0) || (nrow <= 0)), "dimension are negative.");
+  PANIKON(((ncol <= 0) || (nrow <= 0)), "dimension are nonpositive.");
+
   struct table_t *t; 
   MALLOC(t, sizeof(struct table_t));
   MALLOC(t->t, sizeof(int[nrow][ncol]));
@@ -29,11 +25,11 @@ struct table_t *table_init(int ncol, int nrow)
 void table_destroy(struct table_t *t)
 { free(t->t); free(t); }
 
-/** 
- * Operations 
- **/
+//
+// Operations
+//
 
-int __rank_cmp__(void const *a, void const *b)
+static int __rank_cmp__(void const *a, void const *b)
 { 
   int *n = *(int**) a;
   int *m = *(int**) b;
@@ -42,10 +38,20 @@ int __rank_cmp__(void const *a, void const *b)
 
 void
 table_linked_rank(struct table_t *t)
+/* Computes rank for a table, replacing each 
+ * index i with the location of the ith ranked
+ * element. 
+ *
+ * e.g.
+ *  3 5    -> 2 0
+ *  2 9    -> 1 3
+ **/
 {
   int **arr, *tuple; 
+
   MALLOC(arr, sizeof(int*[t->sz]));
   MALLOC(tuple, sizeof(int[t->sz][2]));
+
   for( int i=0; i<t->sz; i++)
   {
     arr[i] = tuple + 2*i;
@@ -71,7 +77,7 @@ int table_fingerprint(struct table_t *t)
   {
     for (int j=0; j < t->r; j++,k++)
     {
-      fingerprint = fingerprint * 10 + t->t[k];
+      fingerprint = (fingerprint*10 + t->t[k]);
     }
   }
 
@@ -93,9 +99,9 @@ int table_equal(struct table_t *t1, struct table_t *t2)
   return 1;
 }
 
-/**
- * List
- **/
+//
+// List
+//
 
 struct table_list_t {
   int capacity;
@@ -103,7 +109,8 @@ struct table_list_t {
   struct table_t **list;
 };
 
-struct table_list_t *table_list_init(struct table_t *t)
+struct table_list_t *
+table_list_init(struct table_t *t)
 {
   struct table_list_t *tl;
   MALLOC(tl, sizeof(*tl));
@@ -119,7 +126,8 @@ struct table_list_t *table_list_init(struct table_t *t)
   return tl;
 }
 
-void table_list_destroy(struct table_list_t *tl)
+void
+table_list_destroy(struct table_list_t *tl)
 {
   while( --(tl->count) >= 0 )
   {
@@ -129,12 +137,14 @@ void table_list_destroy(struct table_list_t *tl)
   free(tl);
 }
 
-int table_list_get_size(struct table_list_t *tl)
+int
+table_list_get_size(struct table_list_t *tl)
 {
   return tl->count;
 }
 
-int table_list_find(struct table_list_t *tl, struct table_t *t)
+int 
+table_list_find(struct table_list_t *tl, struct table_t *t)
 {
   for( int i=tl->count-1; i >= 0; i-- )
   {
@@ -144,7 +154,8 @@ int table_list_find(struct table_list_t *tl, struct table_t *t)
   return 0;
 }
 
-void table_list_append(struct table_list_t *tl, struct table_t *t)
+void 
+table_list_append(struct table_list_t *tl, struct table_t *t)
 {
   if( tl->count >= tl->capacity )
   {
@@ -156,14 +167,15 @@ void table_list_append(struct table_list_t *tl, struct table_t *t)
   tl->count += 1;
 }
 
-struct table_t *table_list_at(struct table_list_t *tl, int i)
+struct table_t *
+table_list_at(struct table_list_t *tl, int i)
 {
   return tl->list[i];
 }
 
-/**
- * AVL
- **/
+//
+// Average Length Tree (AVL)
+//
 
 struct avl_node_t { 
   int key;
@@ -360,11 +372,13 @@ avl_print(struct avl_node_t *node)
 
 void
 avl_from_file(struct avl_node_t **root, int ncol, int nrow)
+/* Insert elements from file asociated with ncol, nrow
+ * to the tree pointed by *root.
+ * */
 {
   char filename[50];
   snprintf(filename, 49, BANNEDFMT, ncol, nrow);
   FILE *f = fopen(filename, "r");
-  //PANIKON(f==NULL, "Cannot open '%s'", filename);
   if( f==NULL ) return;
 
   char line[100];
@@ -393,7 +407,15 @@ avl_from_file(struct avl_node_t **root, int ncol, int nrow)
 struct avl_node_t *
 avl_init_from_banned(int ncol, int nrow)
 /* Load banned subtables that fit in the table of 
- * size ncolxnrow.
+ * size (ncol, nrow).
+ *
+ * INPUT
+ * ---------
+ *  ncol, nrow : # column/row of the reference table
+ *
+ * OUTPUT
+ * ---------
+ *  an avl tree with all the (available) banned subtables.
  * */
 {
   struct avl_node_t *root = NULL;
@@ -412,6 +434,17 @@ avl_init_from_banned(int ncol, int nrow)
  **/
 int
 table_is_banned(struct avl_node_t *root, struct table_t *t)
+/* Chech is the table t is banned.
+ *
+ * INPUT
+ * --------
+ *  root : avl tree with banned subtables
+ *  t    : table to examine
+ *
+ * OUTPUT
+ *  returns 1 is table is banned, 0 otherwise.
+ * --------
+ * */
 {
   struct table_t *r = table_init(t->c, t->r);
   memcpy(r->t, t->t, sizeof(int[t->sz]));
@@ -433,6 +466,15 @@ _exit:;
 
 int
 table_has_banned_subtable(struct avl_node_t *root, struct table_t *t)
+/* INPUT
+ * --------
+ *  - root : avl tree root that contains banned tables.
+ *  - table: table to examine
+ *
+ * OUPUT
+ * --------
+ *  returns 1 if table is banned. 0 otherwise.
+ * */
 {
   if( t->c <= 3 && t->r <= 3) return 0;
 
@@ -449,20 +491,33 @@ table_has_banned_subtable(struct avl_node_t *root, struct table_t *t)
 
 int
 table_has_banned_subrank_of_dim(struct avl_node_t *root, int ncol, int nrow, struct table_t *t)
+/* ALGORITHM
+ * ---------
+ * Each column for the submatrix must satisfy
+ * 1 <= column0 <= ncol
+ * 2 <= column1 <= ncol + 1
+ *        ...
+ * ncol <= columnK <= ncol + k <= nrow-ncol
+ * We let fix the first K-1 column and run out all posibilities for K.
+ * The procedure is repeated for K-2, ..., 1.
+ *
+ * Of course, the same applies for rows 
+ *
+ * INPUT
+ * --------
+ * - root: root of the avl tree with banned ranks
+ * - ncol, nrow: dimension of the subtable to look for
+ * - table: table to examine
+ *
+ * OUTPUT
+ * --------
+ * 0 is table has no banned dimension. 1 otherwise
+ * */
 {
   if( ncol > t->c || nrow > t->r ) return 0;
 
   struct table_t *s = table_init(ncol, nrow);
 
-  /* Each column for the submatrix must satisfy
-   * 1 <= column0 <= ncol
-   * 2 <= column1 <= ncol + 1
-   * ...
-   * ncol <= columnK <= ncol + k <= nrow-ncol
-   * We let fix the first K-1 column and run out all posibilities for K.
-   * The procedure is repeated for K-2, ..., 1.
-   *
-   * Of course, the same applies for rows */
   int *permcol; CALLOC(permcol, s->c, sizeof(int));
   int *permrow; CALLOC(permrow, s->r, sizeof(int));
 

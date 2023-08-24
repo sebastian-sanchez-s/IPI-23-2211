@@ -6,7 +6,7 @@ mkdir -p $ROOTDIR
 echo "Benchmark for StandardYoungTableux Computation."
 echo "Samples per case: "$SAMPLES
 
-CASES="3x4 3x6 4x5"
+CASES="3x3 3x6 4x5"
 
 make 2&>/dev/null
 
@@ -21,12 +21,11 @@ do
     perf_file=$ROOTDIR"m"$m"n"$n
     if [[ ! -f "$perf_file" ]]; then
         mkdir -p raw
-        3>$perf_file perf stat --null -r $SAMPLES --log-fd 3 obj/a.out $m $n
+        rm -f banned/c$m"r"$n
+        3>$perf_file perf stat --null -r $SAMPLES --log-fd 3 ./obj/a.out $m $n
         echo $(tail -2 $perf_file | head) > $perf_file
     fi
 
     echo " [DONE]" 
     cat $perf_file
-
-    #rm -f raw/*
 done
