@@ -1,8 +1,5 @@
 #pragma once
 
-/* ================== */
-/* ==== Includes ==== */ 
-/* ================== */
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -13,14 +10,9 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-/* ================ */
-/* ==== MACROS ==== */ 
-/* ================ */
 #define BANNEDFMT "banned/c%ir%i"
 #define NFMT "raw/Nc%ir%i"
 #define PFMT "raw/Pc%ir%i"
-
-#define INTWIDTH 6 
 
 #define PANIK(...) do {\
   fprintf(stderr,\
@@ -37,41 +29,31 @@
     if (cond) { PANIK(__VA_ARGS__); }\
 } while(0)
 
-#define MALLOC(ptr, sz)\
-{\
+#define MALLOC(ptr, sz) do {\
   ptr = malloc(sz);\
-  { PANIKON(ptr==NULL, "malloc() failed."); }\
-}
+  PANIKON(ptr==NULL, "malloc() failed.");\
+} while(0)
 
-#define CALLOC(ptr, n, sz)\
-{\
+#define CALLOC(ptr, n, sz) do {\
   ptr = calloc(n, sz);\
-  { PANIKON(ptr==NULL, "calloc() failed."); }\
-}
+  PANIKON(ptr==NULL, "calloc() failed.");\
+} while(0)
 
-#define REALLOC(ptr, sz)\
-{\
+#define REALLOC(ptr, sz) do {\
   ptr = realloc(ptr, sz);\
-  { PANIKON(ptr==NULL, "realloc() failed."); }\
-}
+  PANIKON(ptr==NULL, "realloc() failed.");\
+} while(0)
 
-#define PRINTARR(f, a, si, sz)\
-{\
+#define PRINTARR(f, a, si, sz) do {\
   for(int _k=si; _k<si+sz-1; _k++)\
   { fprintf(f, "%i ", a[_k]); }\
   fprintf(f, "%i\n", a[si+sz-1]);\
-}
+} while(0)
 
-#define READARR(f, a, si, sz)\
-{\
+#define READARR(f, a, si, sz) do {\
   for(int _k=si; _k<si+sz; _k++)\
   { fscanf(f, "%i", &a[_k]); }\
-}
-
-#define _debug_flag 0
-#define _debug(...) if(_debug_flag) { fprintf(stderr, __VA_ARGS__); }
-#define _debugC(...) _debug("[CONSUMER] " __VA_ARGS__);
-#define _debugP(...) _debug("[PRODUCER] " __VA_ARGS__);
+} while(0)
 
 /* ====================== */
 /* ==== Data Structs ==== */ 

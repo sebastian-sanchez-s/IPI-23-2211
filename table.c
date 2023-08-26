@@ -1,4 +1,3 @@
-#include <limits.h>
 #include "common.h"
 #include "table.h"
 
@@ -16,7 +15,7 @@ struct table_t *table_init(int ncol, int nrow)
 
   struct table_t *t; 
   MALLOC(t, sizeof(struct table_t));
-  MALLOC(t->t, sizeof(int[nrow][ncol]));
+  MALLOC(t->t, sizeof(int[nrow*ncol]));
   
   t->sz = ncol*nrow; t->c = ncol; t->r = nrow;
   return t;
@@ -204,7 +203,7 @@ table_list_append(struct table_list_t *tl, struct table_t *t)
   if( tl->count >= tl->capacity )
   {
     tl->capacity += LIST_INITIAL_CAPACITY;
-    REALLOC(tl->list, sizeof((*(tl->list))[tl->capacity]));
+    REALLOC(tl->list, sizeof(struct table_t*[tl->capacity]));
   }
 
   tl->list[tl->count] = t;
@@ -593,9 +592,9 @@ table_find_banned_subrank_of_dim(struct avl_node_t *root, int ncol, int nrow, st
         if( j == s->r )
         {
           /* Get subtable */
-          for( int c=0; c < s->c; c++ )
+          for(int c=0; c < s->c; c++)
           {
-            for( int r=0; r < s->r; r++ )
+            for(int r=0; r < s->r; r++)
             {
               s->t[r*(s->c) + c] = t->t[permrow[r]*(t->c) + permcol[c]];
             }
@@ -608,7 +607,7 @@ table_find_banned_subrank_of_dim(struct avl_node_t *root, int ncol, int nrow, st
           }
         }
 
-        if( j >= s->r || permrow[j] > t->r - s->r + j )
+        if( j >= s->r || permrow[j] > (t->r - s->r + j) )
         {
           if( --j >= 0 ) permrow[j] += 1;
         }
@@ -619,7 +618,7 @@ table_find_banned_subrank_of_dim(struct avl_node_t *root, int ncol, int nrow, st
       }
     }
 
-    if( i >= s->c || permcol[i] > t->c - s->c + i )
+    if( i >= s->c || permcol[i] > (t->c - s->c + i) )
     {
       if( --i >= 0 ) permcol[i] +=  1;
     }

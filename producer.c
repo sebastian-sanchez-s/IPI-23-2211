@@ -1,7 +1,7 @@
 #include "producer.h"
 #include "table.h"
 
-static inline int bad_neighbors(int value, int *arr, int j)
+static int bad_neighbors(int value, int *arr, int j)
 {
   int up = (G_ncol<j && arr[j-G_ncol] >= value);
   int left = (j%G_ncol>0 && arr[j-1] >= value);
@@ -17,27 +17,26 @@ void* generate_table(void* param)
   int start_pos = ((struct producer_param_t*) param)->pos;
 
   struct table_t syt = (struct table_t) {
-    .c=G_ncol, .r=G_nrow, .sz=G_sz, .t=&G_arr[i*G_sz]
+    .c=G_ncol, .r=G_nrow, .sz=G_sz, .t=(G_arr + i*G_sz)
   };
 
-  struct table_t taken = (struct table_t) {
-    .c=G_ncol, .r=G_nrow, .sz=G_sz+1, .t=&G_tkn[i*(G_sz+1)]
-  };
+  int *taken = G_tkn + i*(G_sz+1);
 
   //
   // Fill table with minimal configuration.
   //
+  
   int pos = start_pos+1;
   int t = G_min[pos];
   do {
-    if (taken.t[t] || bad_neighbors(t, syt.t, pos))
+    if (taken[t] || bad_neighbors(t, syt.t, pos))
     {
       t++;
     } 
     else
     {
       syt.t[pos] = t;
-      taken.t[t] = 1;
+      taken[t] = 1;
       pos += 1;
       t = G_min[pos];
     }
@@ -61,33 +60,25 @@ void* generate_table(void* param)
         int c = queue_get(G_consumer2producer_queue);
 
         // Send data to consumer 
-        FILE *out = G_consumer_data[c].fs_w; PANIKON(out==NULL, "fs_w of %i is null\n", c);
+        FILE *out = G_consumer_data[c].fs_w; 
+        PANIKON(out==NULL, "fs_w of %i is null\n", c);
         fprintf(out, "1\n");
         PRINTARR(out, syt.t, 0, G_sz);
         fflush(out);
-
-        pos -= 1;
       } 
-      else 
-      {
-        while( --pos > banpos )
-        {
-          taken.t[syt.t[pos]] = 0;
-          syt.t[pos] = 0;
-        }
-      }
+      pos -= 1;
     }
 
     int imax = G_max[pos];
     t = syt.t[pos] > 0 ? syt.t[pos]: G_min[pos];
 
     while( t <= imax 
-        && ( taken.t[t] || bad_neighbors(t, syt.t, pos)) )
+        && ( taken[t] || bad_neighbors(t, syt.t, pos)) )
     {
       t++;
     }
 
-    taken.t[syt.t[pos]] = 0;
+    taken[syt.t[pos]] = 0;
     if (t > imax)
     {
       syt.t[pos] = 0;
@@ -96,12 +87,13 @@ void* generate_table(void* param)
     else
     {
       syt.t[pos] = t;
-      taken.t[t] = 1;
+      taken[t] = 1;
       pos += 1;
     }
   }
 
   queue_put(G_producer_threads_queue, i);
-  pthread_exit(NULL);
+
+  return NULL;
 }
 

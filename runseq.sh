@@ -9,10 +9,6 @@ do
     then
       continue
     fi
-    ./obj/a.out $c $r
-    echo "Generating banned"
-    cat "./raw/Nc"$c"r"$r* > "./banned/c"$c"r"$r
-    echo "Generating feasible"
-    cat "./raw/Pc"$c"r"$r* > "./feasible/c"$c"r"$r
+    make run "NCOL="$c "NROW="$r
   done
 done

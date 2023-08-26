@@ -1,7 +1,7 @@
 # Flags
 CC=gcc
 WF=-Wall -Werror -Wpedantic -Wextra
-CF=-std=gnu11 -g -funroll-loops -O2 -fpic
+CF=-std=gnu11 -g3 -funroll-loops -O2 -fpic
 LD=-L. -I./cddlib/lib-src/ -L./cddlib/lib-src/.libs/ -pthread -lcdd
 
 SRCS=main.c\
@@ -14,15 +14,15 @@ OBJS=$(patsubst %.c,obj/%.o,$(SRCS))
 NCOLTEX=5
 STAMP=m$(NCOL)n$(NROW)
 
-all: $(OBJS) consumer
+all: $(OBJS) obj/consumer.o
 	$(CC) $(CF) $(WF) $(OBJS) -o obj/a.out
+
+obj/consumer.o: consumer.c table.c
+	$(CC) $(CF) $(WF) $^ $(LD) -o $@
 
 obj/%.o: %.c
 	mkdir -p obj
 	$(CC) $(CF) $(WF) $< -c -o obj/$(basename $<).o
-
-consumer: consumer.c
-	$(CC) $(CF) $(WF) $^ $(LD) -o $@
 
 clean: 
 	rm obj/*

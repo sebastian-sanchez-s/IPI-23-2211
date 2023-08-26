@@ -7,7 +7,7 @@
 void *thread_void();
 void *listen_consumer(void *arg);
 void launch_consumer(int i);
-static inline int bad_neighbors(int value, int *arr, int j);
+static int bad_neighbors(int value, int *arr, int j);
 
 /* = producer consumer globals = */
 #define NUM_PRODUCER 5
@@ -18,8 +18,8 @@ struct consumer_data_t G_consumer_data[NUM_CONSUMER];
 struct producer_param_t G_producer_params[NUM_PRODUCER];
 
 /* = queue globals = */
-struct queue_t *G_producer_threads_queue;
-struct queue_t *G_consumer2producer_queue;
+struct queue_t *G_producer_threads_queue = NULL;
+struct queue_t *G_consumer2producer_queue = NULL;
 
 /* = global auxialiry objects = */
 int G_nrow, G_ncol, G_sz;
@@ -50,21 +50,12 @@ int main(int argc, char *argv[])
   MALLOC(G_min, sizeof(int[G_sz]));
   MALLOC(G_max, sizeof(int[G_sz]));
 
-  int max_choices = 0;
-  int imax_choices = 0;
-
   for (int r = 0, i = 0; r < G_nrow; r++)
   {
     for (int c = 0; c < G_ncol; c++, i++)
     {
       G_min[i] = (r+1) * (c+1);
       G_max[i] = G_sz - (G_nrow-r)*(G_ncol-c) + 1;
-
-      if( G_max[i] - G_min[i] > max_choices )
-      {
-        max_choices = G_max[i] - G_min[i];
-        imax_choices = i;
-      }
     }
   }
 
@@ -83,7 +74,6 @@ int main(int argc, char *argv[])
   if (G_ncol > 3 || G_nrow > 3)
   {
     G_avl_banned_tables = avl_init_from_banned(G_ncol, G_nrow);
-    //avl_print(G_avl_banned_tables);
   }
 
   //
@@ -91,27 +81,23 @@ int main(int argc, char *argv[])
   //
   for (int i=0; i<NUM_CONSUMER; i++)
   {
-    pthread_create(&G_consumer_data[i].listener,
-                    NULL,
-                    listen_consumer,
-                    &G_consumer_data[i].i);
+    pthread_create(&G_consumer_data[i].listener, NULL, listen_consumer, &G_consumer_data[i].i);
   }
 
   for (int i=0; i<NUM_PRODUCER; i++)
   {
     G_producer_params[i].i = i;
-    pthread_create(&G_producer[i], NULL, thread_void, NULL);
-    queue_put(G_producer_threads_queue, i); 
+    queue_put(G_producer_threads_queue, i);
+    pthread_create(G_producer + i, NULL, thread_void, NULL);
   }
 
   
   //
   // Execute producers 
   //
-  // First we fill the minimal configuration up to
-  // imax_choices. Then go backwards launching threads.
+  // First we fill the minimal configuration up to min pos. 
   //
-  imax_choices = G_ncol-1;
+  int min_pos = G_ncol - 1;
 
   int *holder_tkn; CALLOC(holder_tkn, G_sz+1, sizeof(int));
   int *holder_arr; CALLOC(holder_arr, G_sz, sizeof(int));
@@ -128,7 +114,7 @@ int main(int argc, char *argv[])
       holder_i += 1;
       holder_t = G_min[holder_i];
     }
-  } while( holder_i < imax_choices );
+  } while( holder_i < min_pos );
 
   holder_arr[0] = 1;
   holder_arr[G_sz-1] = G_sz;
@@ -137,25 +123,20 @@ int main(int argc, char *argv[])
 
   while( holder_i > 0 )
   {
-    if( holder_i == imax_choices )
+    if( holder_i == min_pos )
     {
       int i = queue_get(G_producer_threads_queue);
 
       pthread_join(G_producer[i], NULL);
 
-      memcpy(&G_arr[i*G_sz], holder_arr, sizeof(int[G_sz]));
-      memcpy(&G_tkn[i*(G_sz+1)], holder_tkn, sizeof(int[G_sz+1]));
+      memcpy(G_arr + i*G_sz, holder_arr, sizeof(int[G_sz]));
+      memcpy(G_tkn + i*(G_sz+1), holder_tkn, sizeof(int[G_sz+1]));
 
-      G_producer_params[i] = (struct producer_param_t) {
-        .i = i,
-        .pos = imax_choices-1,
-      };
+      G_producer_params[i] = (struct producer_param_t) { .i = i, .pos = min_pos-1 };
 
-      pthread_create(&G_producer[i],
-                     NULL,
-                     generate_table,
-                     &G_producer_params[i]);
-      holder_i--;
+      pthread_create(G_producer + i, NULL, generate_table, G_producer_params + i);
+
+      holder_i -= 1;
     }
 
     int imax = G_max[holder_i];
@@ -217,7 +198,7 @@ int main(int argc, char *argv[])
 
 void *thread_void()
 {
-  pthread_exit(0);
+  return NULL;
 }
 
 void *listen_consumer(void *arg)
@@ -232,10 +213,10 @@ void *listen_consumer(void *arg)
     queue_put(G_consumer2producer_queue, i);
   }
 
-  pthread_exit(NULL);
+  return NULL;
 }
 
-#define CONSUMERAPP "./consumer"
+#define CONSUMERAPP "./obj/consumer.o"
 
 void launch_consumer(int i)
 {
@@ -258,9 +239,9 @@ void launch_consumer(int i)
     close(c2p[0]); close(c2p[1]); 
 
     char *vars[5]; vars[0] = CONSUMERAPP; vars[4] = NULL;
-    MALLOC(vars[1], sizeof(char[6])); snprintf(vars[1], INTWIDTH-1, "%i", G_ncol);
-    MALLOC(vars[2], sizeof(char[6])); snprintf(vars[2], INTWIDTH-1, "%i", G_nrow);
-    MALLOC(vars[3], sizeof(char[6])); snprintf(vars[3], INTWIDTH-1, "%i", i);
+    MALLOC(vars[1], sizeof(int[10])); snprintf(vars[1], 10, "%i", G_ncol);
+    MALLOC(vars[2], sizeof(int[10])); snprintf(vars[2], 10, "%i", G_nrow);
+    MALLOC(vars[3], sizeof(int[10])); snprintf(vars[3], 10, "%i", i);
 
     PANIKON(execv(CONSUMERAPP, vars) == -1, "execv() failed.");
   } 
@@ -277,7 +258,7 @@ void launch_consumer(int i)
   }
 }
 
-static inline int bad_neighbors(int value, int *arr, int j)
+static int bad_neighbors(int value, int *arr, int j)
 {
   int up = (G_ncol<j && arr[j-G_ncol] >= value);
   int left = (j%G_ncol>0 && arr[j-1] >= value);
