@@ -204,6 +204,9 @@ int main(int argc, char *argv[])
   free(G_arr);
   free(G_tkn);
 
+  free(holder_arr);
+  free(holder_tkn);
+
   queue_destroy(G_producer_threads_queue);
   queue_destroy(G_consumer2producer_queue);
 
