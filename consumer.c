@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "table.c"
+
 #include "setoper.h"
 #include "cdd.h"
 
@@ -8,8 +10,10 @@ double solve_with_cdd();
 void die(int);
 
 int G_nrow, G_ncol, G_sz;
+
 int *rnk = NULL;
-int *arr = NULL;
+struct table_t *table_lrank = NULL;
+struct table_t *table = NULL;
 
 FILE *fp = NULL;
 FILE *fn = NULL;
@@ -39,8 +43,8 @@ int main(int argc, char *argv[])
   fn = fopen(filename, "w");
   PANIKON(fn==NULL, "fopen() failed.");
 
-  MALLOC(arr, sizeof(int[G_sz]));
-  MALLOC(rnk, sizeof(int[G_sz+1]));
+  table = table_init(G_ncol, G_nrow);
+  table_lrank = table_init(G_ncol, G_nrow);
 
   while (1)
   {
@@ -53,8 +57,9 @@ int main(int argc, char *argv[])
     scanf("%i", &flag);
     if (flag < 0) die(0);
     
-    READARR(stdin, arr, 0, G_sz);
-    READARR(stdin, rnk, 1, G_sz);
+    READARR(stdin, table->t, 0, G_sz);
+
+    table_linked_rank(table, table_lrank);
     
     double optval, zero;
     optval = solve_with_cdd();
@@ -62,11 +67,12 @@ int main(int argc, char *argv[])
 
     if (optval > zero)
     {
-      PRINTARR(fp, arr, 0, G_sz);
+      PRINTARR(fp, table->t, 0, G_sz);
     }
     else
     {
-      PRINTARR(fn, rnk, 1, G_sz);
+      table_normalize(table, NULL);
+      PRINTARR(fn, table->t, 0, G_sz);
     }
   }
 
@@ -80,9 +86,11 @@ double solve_with_cdd()
   #define NUM_INE_ORDER_X (G_nrow-1)
   #define NUM_INE_ORDER_Y (G_ncol-1)
   #define NUM_INE_LT_ONE (G_ncol + G_nrow)
-  #define NUM_INE_GT_ZERO (G_ncol + G_nrow+1)
+  #define NUM_INE_GT_ZERO (G_ncol + G_nrow + 1)
   #define NUM_INE_TOTAL (NUM_INE_TABLEAU + NUM_INE_ORDER_X + NUM_INE_ORDER_Y + NUM_INE_LT_ONE + NUM_INE_GT_ZERO) 
   #define NUM_VAR (G_ncol + G_nrow)
+
+  rnk = (table_lrank->t);
 
   dd_MatrixPtr A = dd_CreateMatrix(NUM_INE_TOTAL, 1 + NUM_VAR + 1); // 2 more for epsilon and constant 
 
@@ -94,10 +102,10 @@ double solve_with_cdd()
   /* For every rank k: 0<= -y_col(k) - x_row(k) - epsilon + y_col(k+1) + x_row(k+1). */
   {
       // y variables starts after x variables .ie. at index G_nrow+1
-      int y_col_k = (rnk[k]%G_ncol) + G_nrow+1;
-      int x_row_k = (rnk[k]/G_ncol) + 1;
-      int y_col_kp1 = (rnk[k+1]%G_ncol) + G_nrow+1;
-      int x_row_kp1 = (rnk[k+1]/G_ncol) + 1;
+      int y_col_k = (rnk[k-1]%G_ncol) + G_nrow+1;
+      int x_row_k = (rnk[k-1]/G_ncol) + 1;
+      int y_col_kp1 = (rnk[k]%G_ncol) + G_nrow+1;
+      int x_row_kp1 = (rnk[k]/G_ncol) + 1;
       
       // If same variables appears on both sides, it gets cancel out
       int x_coeff = (x_row_k == x_row_kp1) ? 0: 1;
@@ -170,7 +178,7 @@ void die(int exit_code)
 {
   fclose(fp);
   fclose(fn);
-  free(arr);
-  free(rnk);
+  table_destroy(table);
+  table_destroy(table_lrank);
   exit(exit_code);
 }

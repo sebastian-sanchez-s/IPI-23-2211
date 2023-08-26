@@ -40,21 +40,19 @@
 #define MALLOC(ptr, sz)\
 {\
   ptr = malloc(sz);\
-  PANIKON(ptr==NULL, "malloc() failed.");\
+  { PANIKON(ptr==NULL, "malloc() failed."); }\
 }
 
 #define CALLOC(ptr, n, sz)\
 {\
   ptr = calloc(n, sz);\
-  PANIKON(ptr==NULL, "calloc() failed.");\
+  { PANIKON(ptr==NULL, "calloc() failed."); }\
 }
 
 #define REALLOC(ptr, sz)\
 {\
-  {void* holder = ptr;\
-  ptr = realloc(holder, sz);\
-  PANIKON(ptr==NULL, "realloc() failed.");\
-  }\
+  ptr = realloc(ptr, sz);\
+  { PANIKON(ptr==NULL, "realloc() failed."); }\
 }
 
 #define PRINTARR(f, a, si, sz)\

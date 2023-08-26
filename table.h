@@ -16,8 +16,8 @@ void table_destroy(struct table_t *t);
 
 /** Operations **/
 void table_subtable(struct table_t *t, struct table_t *s, int bcol, int brow);
-void table_normalize(struct table_t *t);
-void table_linked_rank(struct table_t *t);
+void table_normalize(struct table_t *t, struct table_t *);
+void table_linked_rank(struct table_t *t, struct table_t *);
 int table_fingerprint(struct table_t *t);
 
 /** List for tables **/

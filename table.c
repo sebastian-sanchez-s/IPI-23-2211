@@ -36,8 +36,35 @@ static int __rank_cmp__(void const *a, void const *b)
   return n[0] - m[0]; 
 }
 
+static int __int_cmp__(void const *a, void const *b)
+{
+  return (*(int*)a - *(int*)b);
+}
+
 void
-table_linked_rank(struct table_t *t)
+table_normalize(struct table_t *t, struct table_t *n)
+/* Replace with relative order.
+ *  5 4 1     3 2 0
+ *  9 8 2  -> 5 4 1
+ * */
+{
+  int *arr; MALLOC(arr, sizeof(int[t->sz]));
+  memcpy(arr, t->t, sizeof(int[t->sz]));
+
+  qsort(arr, t->sz, sizeof(int), __int_cmp__);
+
+  struct table_t *o = (n==NULL) ? t: n;
+  for (int i=0; i<o->sz; i++)
+  {
+    int *irank = bsearch(&t->t[i], arr, t->sz, sizeof(int), __int_cmp__);
+    o->t[i] = irank - arr;
+  }
+
+  free(arr);
+}
+
+void
+table_linked_rank(struct table_t *t, struct table_t *lrank)
 /* Computes rank for a table, replacing each 
  * index i with the location of the ith ranked
  * element. 
@@ -61,24 +88,40 @@ table_linked_rank(struct table_t *t)
 
   qsort(arr, t->sz, sizeof(int*), __rank_cmp__);
 
-  for( int i=0; i < t->sz; i++)
+  struct table_t *lr = (lrank == NULL) ? t: lrank;
+
+  for( int i=0; i < lr->sz; i++)
   {
-    t->t[i] = arr[i][1];
+    lr->t[i] = arr[i][1];
   }
 
   free(tuple);
   free(arr);
 }
 
-int table_fingerprint(struct table_t *t)
+struct table_t *
+table_get_transpose(struct table_t *t)
 {
-  int fingerprint = 0;
-  for (int i=0, k=0; i < t->c; i++)
+  struct table_t *tt = table_init(t->r, t->c);
+
+  for(int c=0; c < t->c; c++)
   {
-    for (int j=0; j < t->r; j++,k++)
+    for(int r=0; r < t->r; r++)
     {
-      fingerprint = (fingerprint*10 + t->t[k]);
+      tt->t[c*tt->c + r] = t->t[r*t->c + c];
     }
+  }
+
+  return tt;
+}
+
+int
+table_fingerprint(struct table_t *t)
+{
+  int fingerprint = t->c;
+  for (int k=1; k < t->sz-1; k++)
+  {
+    fingerprint = fingerprint*10 + t->t[k];
   }
 
   return fingerprint;
@@ -103,6 +146,7 @@ int table_equal(struct table_t *t1, struct table_t *t2)
 // List
 //
 
+#define LIST_INITIAL_CAPACITY 10
 struct table_list_t {
   int capacity;
   int count;
@@ -116,7 +160,7 @@ table_list_init(struct table_t *t)
   MALLOC(tl, sizeof(*tl));
 
   *tl = (struct table_list_t) {
-    .capacity = 20,
+    .capacity = LIST_INITIAL_CAPACITY,
     .count = 1
   };
 
@@ -159,8 +203,8 @@ table_list_append(struct table_list_t *tl, struct table_t *t)
 {
   if( tl->count >= tl->capacity )
   {
-    tl->capacity += 20;
-    REALLOC(tl->list, tl->capacity * sizeof(*(tl->list)));
+    tl->capacity += LIST_INITIAL_CAPACITY;
+    REALLOC(tl->list, sizeof((*(tl->list))[tl->capacity]));
   }
 
   tl->list[tl->count] = t;
@@ -370,22 +414,24 @@ avl_print(struct avl_node_t *node)
   }
 }
 
+#define FILENAMEBUFF 50
+#define ARRAYLENGTH 100
 void
 avl_from_file(struct avl_node_t **root, int ncol, int nrow)
 /* Insert elements from file asociated with ncol, nrow
  * to the tree pointed by *root.
  * */
 {
-  char filename[50];
-  snprintf(filename, 49, BANNEDFMT, ncol, nrow);
+  char filename[FILENAMEBUFF];
+  snprintf(filename, FILENAMEBUFF, BANNEDFMT, ncol, nrow);
   FILE *f = fopen(filename, "r");
   if( f==NULL ) return;
 
-  char line[100];
+  char line[ARRAYLENGTH];
   while( fgets(line, sizeof(line), f) != NULL )
   {
     char *ite = line;
-    int arr[100];
+    int arr[ARRAYLENGTH];
     int shift;
     
     int i=0;
@@ -395,6 +441,8 @@ avl_from_file(struct avl_node_t **root, int ncol, int nrow)
       ite += shift;
     }
 
+    PANIKON(ncol*nrow > i , "table size and array do not match dimensions");
+
     struct table_t *table = table_init(ncol, nrow);
     memcpy(table->t, arr, sizeof(int[table->sz]));
     
@@ -403,6 +451,8 @@ avl_from_file(struct avl_node_t **root, int ncol, int nrow)
 
   fclose(f);
 }
+#undef FILENAMEBUFF
+#undef ARRAYLENGTH
 
 struct avl_node_t *
 avl_init_from_banned(int ncol, int nrow)
@@ -420,11 +470,13 @@ avl_init_from_banned(int ncol, int nrow)
 {
   struct avl_node_t *root = NULL;
 
-  do {
-    do {
-      avl_from_file(&root, ncol, nrow);
-    } while(--nrow >= 3);
-  } while(--ncol >= 3);
+  for(int c=3; c <= ncol; c++)
+  {
+    for(int r=3; r <= nrow; r++)
+    {
+      avl_from_file(&root, c, r);
+    }
+  }
 
   return root;
 }
@@ -442,20 +494,19 @@ table_is_banned(struct avl_node_t *root, struct table_t *t)
  *  t    : table to examine
  *
  * OUTPUT
- *  returns 1 is table is banned, 0 otherwise.
  * --------
+ *  returns 1 is table is banned, 0 otherwise.
  * */
 {
   struct table_t *r = table_init(t->c, t->r);
-  memcpy(r->t, t->t, sizeof(int[t->sz]));
 
-  table_linked_rank(r);
+  table_normalize(t, r);
 
   int retval = 0;
   struct avl_node_t *n = avl_search(root, r);
-  if (n != NULL)
+  if( n != NULL )
   { 
-    if (table_list_find(n->tables, r))
+    if( table_list_find(n->tables, r) )
     { retval=1; goto _exit; }
   }
 
@@ -478,7 +529,7 @@ table_find_banned_subtable(struct avl_node_t *root, struct table_t *t)
  * */
 {
   if( root==NULL ) return -1;
-  if( t->c <= 3 && t->r <= 3) return -1;
+  if( t->c <= 3 && t->r <= 3 ) return -1;
 
   for(int c=3; c <= t->c; c++)
   {

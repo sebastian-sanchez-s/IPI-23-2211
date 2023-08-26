@@ -16,7 +16,7 @@ extern struct avl_node_t *G_avl_banned_tables;
 
 struct producer_param_t {
   int i;
-  int seed;
+  int pos;
 };
 
 extern struct producer_param_t G_producer_params[];

@@ -7,9 +7,10 @@
 void *thread_void();
 void *listen_consumer(void *arg);
 void launch_consumer(int i);
+static inline int bad_neighbors(int value, int *arr, int j);
 
 /* = producer consumer globals = */
-#define NUM_PRODUCER 4
+#define NUM_PRODUCER 5
 #define NUM_CONSUMER 4
 
 pthread_t G_producer[NUM_PRODUCER];
@@ -49,12 +50,21 @@ int main(int argc, char *argv[])
   MALLOC(G_min, sizeof(int[G_sz]));
   MALLOC(G_max, sizeof(int[G_sz]));
 
+  int max_choices = 0;
+  int imax_choices = 0;
+
   for (int r = 0, i = 0; r < G_nrow; r++)
   {
     for (int c = 0; c < G_ncol; c++, i++)
     {
       G_min[i] = (r+1) * (c+1);
       G_max[i] = G_sz - (G_nrow-r)*(G_ncol-c) + 1;
+
+      if( G_max[i] - G_min[i] > max_choices )
+      {
+        max_choices = G_max[i] - G_min[i];
+        imax_choices = i;
+      }
     }
   }
 
@@ -98,23 +108,75 @@ int main(int argc, char *argv[])
   //
   // Execute producers 
   //
-  int seed = 2;
-  while(seed < G_nrow+2)
+  // First we fill the minimal configuration up to
+  // imax_choices. Then go backwards launching threads.
+  //
+  imax_choices = G_ncol-1;
+
+  int *holder_tkn; CALLOC(holder_tkn, G_sz+1, sizeof(int));
+  int *holder_arr; CALLOC(holder_arr, G_sz, sizeof(int));
+  int holder_i = 1;
+  int holder_t = G_min[holder_i];
+
+  do {
+    if( holder_tkn[holder_t] || bad_neighbors(holder_t, holder_arr, holder_i) )
+    { holder_t++; } 
+    else
+    {
+      holder_arr[holder_i] = holder_t;
+      holder_tkn[holder_t] = 1;
+      holder_i += 1;
+      holder_t = G_min[holder_i];
+    }
+  } while( holder_i < imax_choices );
+
+  holder_arr[0] = 1;
+  holder_arr[G_sz-1] = G_sz;
+  holder_tkn[1] = 1;
+  holder_tkn[G_sz] = 1;
+
+  while( holder_i > 0 )
   {
-    int i = queue_get(G_producer_threads_queue);
+    if( holder_i == imax_choices )
+    {
+      int i = queue_get(G_producer_threads_queue);
 
-    pthread_join(G_producer[i], NULL);
+      pthread_join(G_producer[i], NULL);
 
-    G_producer_params[i] = (struct producer_param_t) {
-      .i = i,
-      .seed = seed,
-    };
+      memcpy(&G_arr[i*G_sz], holder_arr, sizeof(int[G_sz]));
+      memcpy(&G_tkn[i*(G_sz+1)], holder_tkn, sizeof(int[G_sz+1]));
 
-    pthread_create(&G_producer[i],
-                   NULL,
-                   generate_table,
-                   &G_producer_params[i]);
-    seed++;
+      G_producer_params[i] = (struct producer_param_t) {
+        .i = i,
+        .pos = imax_choices-1,
+      };
+
+      pthread_create(&G_producer[i],
+                     NULL,
+                     generate_table,
+                     &G_producer_params[i]);
+      holder_i--;
+    }
+
+    int imax = G_max[holder_i];
+    holder_t = holder_arr[holder_i] > 0 ? holder_arr[holder_i]: G_min[holder_i];
+
+    while( holder_t <= imax 
+        && ( holder_tkn[holder_t] || bad_neighbors(holder_t, holder_arr, holder_i)) )
+    { holder_t++; }
+
+    holder_tkn[holder_arr[holder_i]] = 0;
+    if( holder_t > imax )
+    {
+      holder_arr[holder_i] = 0;
+      holder_i -= 1;
+    } 
+    else
+    {
+      holder_arr[holder_i] = holder_t;
+      holder_tkn[holder_t] = 1;
+      holder_i += 1;
+    }
   }
 
   //
@@ -210,4 +272,11 @@ void launch_consumer(int i)
     cdata->fs_w = fdopen(p2c[1], "w"); // write here
     PANIKON(cdata->fs_w==NULL, "fdopen() failed."); 
   }
+}
+
+static inline int bad_neighbors(int value, int *arr, int j)
+{
+  int up = (G_ncol<j && arr[j-G_ncol] >= value);
+  int left = (j%G_ncol>0 && arr[j-1] >= value);
+  return up || left;
 }

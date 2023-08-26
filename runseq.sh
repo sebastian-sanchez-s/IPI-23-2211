@@ -14,6 +14,5 @@ do
     cat "./raw/Nc"$c"r"$r* > "./banned/c"$c"r"$r
     echo "Generating feasible"
     cat "./raw/Pc"$c"r"$r* > "./feasible/c"$c"r"$r
-    #sort -o "./banned/c"$c"r"$r{,}
   done
 done

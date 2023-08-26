@@ -21,9 +21,10 @@ do
     perf_file=$ROOTDIR"m"$m"n"$n
     if [[ ! -f "$perf_file" ]]; then
         mkdir -p raw
-        rm -f banned/c$m"r"$n
+        mv banned/c$m"r"$n banned/tmp
         3>$perf_file perf stat --null -r $SAMPLES --log-fd 3 ./obj/a.out $m $n
         echo $(tail -2 $perf_file | head) > $perf_file
+        mv banned/tmp banned/c$m"r"$n
     fi
 
     echo " [DONE]" 
