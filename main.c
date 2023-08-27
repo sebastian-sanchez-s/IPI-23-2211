@@ -87,8 +87,8 @@ int main(int argc, char *argv[])
   for (int i=0; i<NUM_PRODUCER; i++)
   {
     G_producer_params[i].i = i;
-    queue_put(G_producer_threads_queue, i);
     pthread_create(G_producer + i, NULL, thread_void, NULL);
+    queue_put(G_producer_threads_queue, i);
   }
 
   
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
   //
   // First we fill the minimal configuration up to min pos. 
   //
-  int min_pos = G_ncol - 1;
+  int min_pos = G_ncol;
 
   int *holder_tkn; CALLOC(holder_tkn, G_sz+1, sizeof(int));
   int *holder_arr; CALLOC(holder_arr, G_sz, sizeof(int));

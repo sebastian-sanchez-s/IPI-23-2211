@@ -19,7 +19,7 @@ struct queue_t *queue_init(int size)
   MALLOC(q->list, sizeof(int[size+1]));
   q->head = 0;
   q->tail = 0;
-  q->size = size;
+  q->size = size+1;
   q->count = 0;
   pthread_mutex_init(&q->lock, NULL);
   pthread_cond_init(&q->full, NULL);
@@ -39,10 +39,10 @@ int queue_put(struct queue_t *q, int d)
 
   q->list[q->head] = d;
   q->head = (q->head + 1) % q->size;
-  q->count = q->count + 1;
+  q->count += 1;
 
-  pthread_mutex_unlock(&q->lock);
   pthread_cond_signal(&q->empty);
+  pthread_mutex_unlock(&q->lock);
 
   return 0;
 }
@@ -60,10 +60,10 @@ int queue_get(struct queue_t *q)
   int r = q->list[q->tail];
 
   q->tail = (q->tail + 1) % q->size;
-  q->count = q->count - 1;
+  q->count -= 1;
 
-  pthread_mutex_unlock(&q->lock);
   pthread_cond_signal(&q->full);
+  pthread_mutex_unlock(&q->lock);
 
   return r;
 }

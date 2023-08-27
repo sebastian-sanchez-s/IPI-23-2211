@@ -17,10 +17,10 @@ void* generate_table(void* param)
   int start_pos = ((struct producer_param_t*) param)->pos;
 
   struct table_t syt = (struct table_t) {
-    .c=G_ncol, .r=G_nrow, .sz=G_sz, .t=(G_arr + i*G_sz)
+    .c=G_ncol, .r=G_nrow, .sz=G_sz, .t=&G_arr[i*G_sz]
   };
 
-  int *taken = G_tkn + i*(G_sz+1);
+  int *taken = &G_tkn[i*(G_sz+1)];
 
   //
   // Fill table with minimal configuration.
@@ -65,7 +65,8 @@ void* generate_table(void* param)
         fprintf(out, "1\n");
         PRINTARR(out, syt.t, 0, G_sz);
         fflush(out);
-      } 
+      }
+
       pos -= 1;
     }
 

@@ -24,9 +24,13 @@ obj/%.o: %.c
 	mkdir -p obj
 	$(CC) $(CF) $(WF) $< -c -o obj/$(basename $<).o
 
-clean: 
+cleanobj: 
 	rm obj/*
+
+cleandata:
 	rm raw/*
+	rm feasible/*
+	rm banned/*
 
 run: obj/a.out
 	mkdir -p raw
