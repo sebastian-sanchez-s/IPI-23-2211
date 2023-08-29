@@ -54,7 +54,7 @@ void* generate_table(void* param)
       // Only set a table if it does not have any
       // bad subtable
       //
-      int banpos = table_find_banned_subtable(G_avl_banned_tables, &syt);
+      int banpos = table_find_banned_subtable(G_banned_tables, &syt);
       if( banpos < 0 )
       {
         int c = queue_get(G_consumer2producer_queue);

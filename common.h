@@ -52,7 +52,7 @@
 
 #define READARR(f, a, si, sz) do {\
   for(int _k=si; _k<si+sz; _k++)\
-  { fscanf(f, "%i", &a[_k]); }\
+  { if( fscanf(f, "%i", &a[_k]) == 1 ) continue; }\
 } while(0)
 
 /* ====================== */

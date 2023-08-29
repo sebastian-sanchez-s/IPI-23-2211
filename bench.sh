@@ -7,7 +7,7 @@ mkdir -p raw
 echo "Benchmark for feasible syt as outer sums."
 echo "Samples per case: "$SAMPLES
 
-CASES="3x3 3x6 4x5 3x8 5x5"
+CASES="3x3 3x6 4x5 3x8"
 
 make 2&>/dev/null
 

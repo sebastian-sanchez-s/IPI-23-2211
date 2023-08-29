@@ -53,8 +53,7 @@ int main(int argc, char *argv[])
 
     // Expect response
     int flag;
-    scanf("%i", &flag);
-    if (flag < 0) goto _exit;
+    if( scanf("%i", &flag) == 1 && flag < 0) goto _exit;
     
     READARR(stdin, table->t, 0, G_sz);
 
