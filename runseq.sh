@@ -1,3 +1,5 @@
+#!/bin/bash
+
 mkdir -p banned
 mkdir -p feasible
 

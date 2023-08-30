@@ -1,3 +1,5 @@
+#!/bin/bash
+
 SAMPLES=3
 ROOTDIR=$(pwd)/perf/
 
