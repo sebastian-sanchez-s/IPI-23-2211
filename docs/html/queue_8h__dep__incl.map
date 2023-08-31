@@ -1,0 +1,7 @@
+<map id="queue.h" name="queue.h">
+<area shape="rect" id="node1" title="Simple thread&#45;safe circular queue." alt="" coords="81,5,149,31"/>
+<area shape="rect" id="node2" href="$main_8c.html" title="Set up communication channels and start threads." alt="" coords="5,152,67,177"/>
+<area shape="rect" id="node3" href="$producer_8h.html" title="Compute tables and sent to consumer those that do not have banned subtables." alt="" coords="73,79,156,104"/>
+<area shape="rect" id="node5" href="$queue_8c.html" title="Simple thread&#45;safe circular queue." alt="" coords="181,79,249,104"/>
+<area shape="rect" id="node4" href="$producer_8c.html" title=" " alt="" coords="91,152,173,177"/>
+</map>

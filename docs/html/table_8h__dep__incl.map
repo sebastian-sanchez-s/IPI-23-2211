@@ -1,0 +1,8 @@
+<map id="table.h" name="table.h">
+<area shape="rect" id="node1" title="Table object interface." alt="" coords="181,5,243,31"/>
+<area shape="rect" id="node2" href="$consumer_8c.html" title="Decide if a table is feasible or not." alt="" coords="5,79,96,104"/>
+<area shape="rect" id="node3" href="$main_8c.html" title="Set up communication channels and start threads." alt="" coords="117,152,179,177"/>
+<area shape="rect" id="node4" href="$producer_8c.html" title=" " alt="" coords="233,152,316,177"/>
+<area shape="rect" id="node5" href="$producer_8h.html" title="Compute tables and sent to consumer those that do not have banned subtables." alt="" coords="171,79,253,104"/>
+<area shape="rect" id="node6" href="$table_8c.html" title="Table object, along with auxiliary structures and its operations." alt="" coords="328,79,389,104"/>
+</map>

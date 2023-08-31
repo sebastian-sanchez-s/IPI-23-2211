@@ -1,0 +1,15 @@
+<map id="consumer.c" name="consumer.c">
+<area shape="rect" id="node1" title="Decide if a table is feasible or not." alt="" coords="388,5,479,31"/>
+<area shape="rect" id="node2" href="$common_8h.html" title=" " alt="" coords="311,152,393,177"/>
+<area shape="rect" id="node11" href="$table_8h.html" title="Table object interface." alt="" coords="356,79,417,104"/>
+<area shape="rect" id="node12" title=" " alt="" coords="442,79,518,104"/>
+<area shape="rect" id="node13" title=" " alt="" coords="542,79,597,104"/>
+<area shape="rect" id="node3" title=" " alt="" coords="5,225,67,251"/>
+<area shape="rect" id="node4" title=" " alt="" coords="91,225,155,251"/>
+<area shape="rect" id="node5" title=" " alt="" coords="179,225,243,251"/>
+<area shape="rect" id="node6" title=" " alt="" coords="267,225,343,251"/>
+<area shape="rect" id="node7" title=" " alt="" coords="367,225,430,251"/>
+<area shape="rect" id="node8" title=" " alt="" coords="454,225,519,251"/>
+<area shape="rect" id="node9" title=" " alt="" coords="543,225,611,251"/>
+<area shape="rect" id="node10" title=" " alt="" coords="635,225,714,251"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="producer.h" name="producer.h">
+<area shape="rect" id="node1" title="Compute tables and sent to consumer those that do not have banned subtables." alt="" coords="43,5,125,31"/>
+<area shape="rect" id="node2" href="$main_8c.html" title="Set up communication channels and start threads." alt="" coords="5,79,67,104"/>
+<area shape="rect" id="node3" href="$producer_8c.html" title=" " alt="" coords="91,79,173,104"/>
+</map>

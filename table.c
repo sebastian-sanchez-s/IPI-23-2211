@@ -1,3 +1,40 @@
+/****************************************************************************
+ * Copyright (C) 2023 by Sebastián Sánchez                                                      
+ *                                                                          
+ *  Permission is hereby granted, free of charge, to any person obtaining
+ *  a copy of this software and associated documentation files (the
+ *  "Software"), to deal in the Software without restriction, including
+ *  without limitation the rights to use, copy, modify, merge, publish,
+ *  distribute, sublicense, and/or sell copies of the Software, and to
+ *  permit persons to whom the Software is furnished to do so, subject to
+ *  the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be
+ *  included in all copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ *  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ *  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ *  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ *  LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ *  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ *  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ ****************************************************************************/
+
+/**
+ * @file table.c
+ * @author Sebastián Sánchez 
+ * @date Aug 2032
+ * @brief Table object, along with auxiliary structures and its operations.
+ *
+ * A table has columns and rows. Here are implemented: (1) the primitive
+ * funcionality such as initialization and deletion; (2) Operations such
+ * as getting a subtable, normalizing, computing its fingerprint and
+ * its linked rank; (3) list for table and pairs (key,tables); (4)
+ * properties of tables such as being banned, having banned subtables, being
+ * equal to other tables.
+ */
+
 #include "common.h"
 #include "table.h"
 
@@ -5,11 +42,8 @@
 // Primitives
 //
 
-void table_set_all(struct table_t *t, int val)
-{ memset(t->t, val, sizeof(int[t->sz])); }
-
+/** Returns a table with ncol columsn and nrow rows. */
 struct table_t *table_init(int ncol, int nrow)
-/* Returns a table with ncol and nrow. */
 {
   PANIKON(((ncol <= 0) || (nrow <= 0)), "dimension are nonpositive.");
 
@@ -27,6 +61,7 @@ void table_destroy(struct table_t *t)
 //
 // Operations
 //
+void load_banned_from_file(struct pair_list_t *pl, int ncol, int nrow);
 
 static int __rank_cmp__(void const *a, void const *b)
 { 
@@ -129,6 +164,12 @@ int table_equal(struct table_t *t1, struct table_t *t2)
 // List
 //
 
+struct table_list_t *table_list(struct table_t *t);
+void table_list_destroy(struct table_list_t *tl);
+int table_list_find(struct table_list_t *tl, struct table_t *t);
+void table_list_append(struct table_list_t *tl, struct table_t *t);
+struct table_t *table_list_at(struct table_list_t *tl, int i);
+
 #define LIST_INITIAL_CAPACITY 10
 struct table_list_t {
   int capacity;
@@ -203,6 +244,10 @@ table_list_at(struct table_list_t *tl, int i)
 //
 // Pair List
 //
+
+void pair_list_sort(struct pair_list_t *pl);
+struct table_list_t* pair_list_find(struct pair_list_t *pl, int key);
+void pair_list_append(struct pair_list_t *pl, int key, struct table_t *t);
 
 struct pair_t {
   int key;
@@ -371,13 +416,13 @@ load_banned_subtables(int ncol, int nrow)
   return pl;
 }
 
-/**
- * Properties
- **/
+//
+// Properties
+//
+
 int
 table_is_banned(struct pair_list_t *pl, struct table_t *t)
-/* Chech is the table t is banned.
- *
+/**
  * INPUT
  * --------
  *  pl : pair list with banned subtables
@@ -407,9 +452,10 @@ _exit:;
 
 int
 table_find_banned_subtable(struct pair_list_t *pl, struct table_t *t)
-/* INPUT
+/**
+ * INPUT
  * --------
- *  - root : a pair list that contains banned tables.
+ *  - pl   : a pair list that contains banned tables and its fingerprints.
  *  - table: table to examine
  *
  * OUPUT
@@ -435,7 +481,8 @@ table_find_banned_subtable(struct pair_list_t *pl, struct table_t *t)
 
 int
 table_find_banned_subrank_of_dim(struct pair_list_t *pl, int ncol, int nrow, struct table_t *t)
-/* ALGORITHM
+/**
+ * ALGORITHM
  * ---------
  * Each column for the submatrix must satisfy
  * 1 <= column0 <= ncol
@@ -449,7 +496,7 @@ table_find_banned_subrank_of_dim(struct pair_list_t *pl, int ncol, int nrow, str
  *
  * INPUT
  * --------
- * - ncol, nrow: dimension of the subtable to look for
+ * - ncol, nrow: dimension of the subtable to look for.
  * - table: table to examine
  *
  * OUTPUT

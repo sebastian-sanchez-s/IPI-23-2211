@@ -1,0 +1,14 @@
+<map id="producer.h" name="producer.h">
+<area shape="rect" id="node1" title="Compute tables and sent to consumer those that do not have banned subtables." alt="" coords="303,5,385,31"/>
+<area shape="rect" id="node2" href="$common_8h.html" title=" " alt="" coords="311,152,393,177"/>
+<area shape="rect" id="node11" href="$queue_8h.html" title="Simple thread&#45;safe circular queue." alt="" coords="310,79,378,104"/>
+<area shape="rect" id="node12" href="$table_8h.html" title="Table object interface." alt="" coords="403,79,464,104"/>
+<area shape="rect" id="node3" title=" " alt="" coords="5,225,67,251"/>
+<area shape="rect" id="node4" title=" " alt="" coords="91,225,155,251"/>
+<area shape="rect" id="node5" title=" " alt="" coords="179,225,243,251"/>
+<area shape="rect" id="node6" title=" " alt="" coords="267,225,343,251"/>
+<area shape="rect" id="node7" title=" " alt="" coords="367,225,430,251"/>
+<area shape="rect" id="node8" title=" " alt="" coords="454,225,519,251"/>
+<area shape="rect" id="node9" title=" " alt="" coords="543,225,611,251"/>
+<area shape="rect" id="node10" title=" " alt="" coords="635,225,714,251"/>
+</map>
