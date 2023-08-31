@@ -91,7 +91,7 @@ Include dependency graph for main.c:</div>
 <map name="amain_8c" id="amain_8c">
 <area shape="rect" title="Set up communication channels and start threads." alt="" coords="434,5,495,31"/>
 <area shape="rect" href="common_8h.html" title=" " alt="" coords="325,225,407,251"/>
-<area shape="rect" href="consumer_8h.html" title=" " alt="" coords="561,225,651,251"/>
+<area shape="rect" href="consumer_8h.html" title="Data structures and headers use by consumer." alt="" coords="561,225,651,251"/>
 <area shape="rect" href="queue_8h.html" title="Simple thread&#45;safe circular queue." alt="" coords="523,152,591,177"/>
 <area shape="rect" href="producer_8h.html" title="Compute tables and sent to consumer those that do not have banned subtables." alt="" coords="423,79,506,104"/>
 <area shape="rect" href="table_8h.html" title="Table object interface." alt="" coords="335,152,397,177"/>
@@ -109,8 +109,10 @@ Include dependency graph for main.c:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:a7cc3819ea65c8e8a00b610aa4da8f0d7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a7cc3819ea65c8e8a00b610aa4da8f0d7">NUM_PRODUCER</a>&#160;&#160;&#160;5</td></tr>
+<tr class="memdesc:a7cc3819ea65c8e8a00b610aa4da8f0d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Producer threads.  <br /></td></tr>
 <tr class="separator:a7cc3819ea65c8e8a00b610aa4da8f0d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a97783b9295eb0b5732a46274e0f1eef7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a97783b9295eb0b5732a46274e0f1eef7">NUM_CONSUMER</a>&#160;&#160;&#160;4</td></tr>
+<tr class="memdesc:a97783b9295eb0b5732a46274e0f1eef7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Consumer threads and processes.  <br /></td></tr>
 <tr class="separator:a97783b9295eb0b5732a46274e0f1eef7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adf4ee80b0d0934ec4d14a3898b15e8ff"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#adf4ee80b0d0934ec4d14a3898b15e8ff">CONSUMERAPP</a>&#160;&#160;&#160;&quot;./obj/consumer.o&quot;</td></tr>
 <tr class="separator:adf4ee80b0d0934ec4d14a3898b15e8ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -129,30 +131,43 @@ Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:a8b5e84c3cfa857c0bf511f169b410196"><td class="memItemLeft" align="right" valign="top">pthread_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a8b5e84c3cfa857c0bf511f169b410196">G_producer</a> [<a class="el" href="main_8c.html#a7cc3819ea65c8e8a00b610aa4da8f0d7">NUM_PRODUCER</a>]</td></tr>
+<tr class="memdesc:a8b5e84c3cfa857c0bf511f169b410196"><td class="mdescLeft">&#160;</td><td class="mdescRight">indexed Producer resources  <br /></td></tr>
 <tr class="separator:a8b5e84c3cfa857c0bf511f169b410196"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adcd15773fa6eced4bedc4f03096ec31d"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structconsumer__data__t.html">consumer_data_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#adcd15773fa6eced4bedc4f03096ec31d">G_consumer_data</a> [<a class="el" href="main_8c.html#a97783b9295eb0b5732a46274e0f1eef7">NUM_CONSUMER</a>]</td></tr>
+<tr class="memdesc:adcd15773fa6eced4bedc4f03096ec31d"><td class="mdescLeft">&#160;</td><td class="mdescRight">indexed consumer resources  <br /></td></tr>
 <tr class="separator:adcd15773fa6eced4bedc4f03096ec31d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a79e3f32cf5cdfed8e009c262ee008b89"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structproducer__param__t.html">producer_param_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a79e3f32cf5cdfed8e009c262ee008b89">G_producer_params</a> [<a class="el" href="main_8c.html#a7cc3819ea65c8e8a00b610aa4da8f0d7">NUM_PRODUCER</a>]</td></tr>
+<tr class="memdesc:a79e3f32cf5cdfed8e009c262ee008b89"><td class="mdescLeft">&#160;</td><td class="mdescRight">indexed producer parameters  <br /></td></tr>
 <tr class="separator:a79e3f32cf5cdfed8e009c262ee008b89"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2397d6c647be826c74aabf719c09e06f"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structqueue__t.html">queue_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a2397d6c647be826c74aabf719c09e06f">G_producer_threads_queue</a> = NULL</td></tr>
-<tr class="separator:a2397d6c647be826c74aabf719c09e06f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a05f7386385aed600320bc00f18aec7b9"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structqueue__t.html">queue_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a05f7386385aed600320bc00f18aec7b9">G_consumer2producer_queue</a> = NULL</td></tr>
-<tr class="separator:a05f7386385aed600320bc00f18aec7b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a755e5e228176b821be59b4ce979c59a8"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structqueue__t.html">queue_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a755e5e228176b821be59b4ce979c59a8">G_producer_queue</a> = NULL</td></tr>
+<tr class="memdesc:a755e5e228176b821be59b4ce979c59a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">queue for threads producing tables.  <br /></td></tr>
+<tr class="separator:a755e5e228176b821be59b4ce979c59a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aee7810f5f20f1088a8fab24ad5386821"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structqueue__t.html">queue_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#aee7810f5f20f1088a8fab24ad5386821">G_consumer_queue</a> = NULL</td></tr>
+<tr class="memdesc:aee7810f5f20f1088a8fab24ad5386821"><td class="mdescLeft">&#160;</td><td class="mdescRight">queue for processes consuming tables.  <br /></td></tr>
+<tr class="separator:aee7810f5f20f1088a8fab24ad5386821"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad5473f59f4d1d90eea908bd2343f2f81"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#ad5473f59f4d1d90eea908bd2343f2f81">G_nrow</a></td></tr>
+<tr class="memdesc:ad5473f59f4d1d90eea908bd2343f2f81"><td class="mdescLeft">&#160;</td><td class="mdescRight">rows of the table given as input.  <br /></td></tr>
 <tr class="separator:ad5473f59f4d1d90eea908bd2343f2f81"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab601737091d1f02fd69c6cbe06dfaf76"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#ab601737091d1f02fd69c6cbe06dfaf76">G_ncol</a></td></tr>
+<tr class="memdesc:ab601737091d1f02fd69c6cbe06dfaf76"><td class="mdescLeft">&#160;</td><td class="mdescRight">columns of the table given as input.  <br /></td></tr>
 <tr class="separator:ab601737091d1f02fd69c6cbe06dfaf76"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a01ea832b1373f945701bcd97cb7969ec"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a01ea832b1373f945701bcd97cb7969ec">G_sz</a></td></tr>
+<tr class="memdesc:a01ea832b1373f945701bcd97cb7969ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">size of the table.  <br /></td></tr>
 <tr class="separator:a01ea832b1373f945701bcd97cb7969ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa1313afb6ef54e09162e0d86cf109598"><td class="memItemLeft" align="right" valign="top">int *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#aa1313afb6ef54e09162e0d86cf109598">G_min</a></td></tr>
+<tr class="memdesc:aa1313afb6ef54e09162e0d86cf109598"><td class="mdescLeft">&#160;</td><td class="mdescRight">A nrowsxncols matrix with the minimum value possible in each entry.  <br /></td></tr>
 <tr class="separator:aa1313afb6ef54e09162e0d86cf109598"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a90a2221c9f54030eb7bcab19d90a823b"><td class="memItemLeft" align="right" valign="top">int *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a90a2221c9f54030eb7bcab19d90a823b">G_max</a></td></tr>
-<tr class="separator:a90a2221c9f54030eb7bcab19d90a823b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af4c1c4ac30af9153ddfe26ae8b021974"><td class="memItemLeft" align="right" valign="top">int *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#af4c1c4ac30af9153ddfe26ae8b021974">G_max</a></td></tr>
+<tr class="memdesc:af4c1c4ac30af9153ddfe26ae8b021974"><td class="mdescLeft">&#160;</td><td class="mdescRight">A nrowsxncols matrix with the maximum value possible in each entry.  <br /></td></tr>
+<tr class="separator:af4c1c4ac30af9153ddfe26ae8b021974"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a236dfe79581b2964b1945ad8f2d72909"><td class="memItemLeft" align="right" valign="top">int *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a236dfe79581b2964b1945ad8f2d72909">G_arr</a></td></tr>
+<tr class="memdesc:a236dfe79581b2964b1945ad8f2d72909"><td class="mdescLeft">&#160;</td><td class="mdescRight">A matrix use for main to store the seed.  <br /></td></tr>
 <tr class="separator:a236dfe79581b2964b1945ad8f2d72909"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a92998a81b3bfe499169439a3c8c397f0"><td class="memItemLeft" align="right" valign="top">int *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a92998a81b3bfe499169439a3c8c397f0">G_tkn</a></td></tr>
+<tr class="memdesc:a92998a81b3bfe499169439a3c8c397f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">An auxiliary matrix use to know which values are already been taken.  <br /></td></tr>
 <tr class="separator:a92998a81b3bfe499169439a3c8c397f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acce05510fef5a54f22cab9a6d8a8ad27"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structpair__list__t.html">pair_list_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#acce05510fef5a54f22cab9a6d8a8ad27">G_banned_tables</a> = NULL</td></tr>
+<tr class="memdesc:acce05510fef5a54f22cab9a6d8a8ad27"><td class="mdescLeft">&#160;</td><td class="mdescRight">A structure to check if a table has a banned subtable.  <br /></td></tr>
 <tr class="separator:acce05510fef5a54f22cab9a6d8a8ad27"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -186,6 +201,8 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Consumer threads and processes. </p>
+
 </div>
 </div>
 <a id="a7cc3819ea65c8e8a00b610aa4da8f0d7" name="a7cc3819ea65c8e8a00b610aa4da8f0d7"></a>
@@ -199,6 +216,8 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Producer threads. </p>
 
 </div>
 </div>
@@ -291,6 +310,8 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Main - Set up the communication between Producer and Consumers.</p>
+<p>For consumers: it launch the processes as well as listening threads. When a consumers signals readyness, main put that consumer into the G_consumer_queue. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -368,6 +389,8 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>A matrix use for main to store the seed. </p>
+
 </div>
 </div>
 <a id="acce05510fef5a54f22cab9a6d8a8ad27" name="acce05510fef5a54f22cab9a6d8a8ad27"></a>
@@ -382,19 +405,7 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-</div>
-</div>
-<a id="a05f7386385aed600320bc00f18aec7b9" name="a05f7386385aed600320bc00f18aec7b9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a05f7386385aed600320bc00f18aec7b9">&#9670;&#160;</a></span>G_consumer2producer_queue</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">struct <a class="el" href="structqueue__t.html">queue_t</a>* G_consumer2producer_queue = NULL</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
+<p>A structure to check if a table has a banned subtable. </p>
 
 </div>
 </div>
@@ -410,19 +421,39 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>indexed consumer resources </p>
+
 </div>
 </div>
-<a id="a90a2221c9f54030eb7bcab19d90a823b" name="a90a2221c9f54030eb7bcab19d90a823b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a90a2221c9f54030eb7bcab19d90a823b">&#9670;&#160;</a></span>G_max</h2>
+<a id="aee7810f5f20f1088a8fab24ad5386821" name="aee7810f5f20f1088a8fab24ad5386821"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aee7810f5f20f1088a8fab24ad5386821">&#9670;&#160;</a></span>G_consumer_queue</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int * G_max</td>
+          <td class="memname">struct <a class="el" href="structqueue__t.html">queue_t</a>* G_consumer_queue = NULL</td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>queue for processes consuming tables. </p>
+
+</div>
+</div>
+<a id="af4c1c4ac30af9153ddfe26ae8b021974" name="af4c1c4ac30af9153ddfe26ae8b021974"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af4c1c4ac30af9153ddfe26ae8b021974">&#9670;&#160;</a></span>G_max</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int* G_max</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A nrowsxncols matrix with the maximum value possible in each entry. </p>
 
 </div>
 </div>
@@ -438,6 +469,8 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>A nrowsxncols matrix with the minimum value possible in each entry. </p>
+
 </div>
 </div>
 <a id="ab601737091d1f02fd69c6cbe06dfaf76" name="ab601737091d1f02fd69c6cbe06dfaf76"></a>
@@ -451,6 +484,8 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>columns of the table given as input. </p>
 
 </div>
 </div>
@@ -466,6 +501,8 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>rows of the table given as input. </p>
+
 </div>
 </div>
 <a id="a8b5e84c3cfa857c0bf511f169b410196" name="a8b5e84c3cfa857c0bf511f169b410196"></a>
@@ -479,6 +516,8 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>indexed Producer resources </p>
 
 </div>
 </div>
@@ -494,19 +533,23 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>indexed producer parameters </p>
+
 </div>
 </div>
-<a id="a2397d6c647be826c74aabf719c09e06f" name="a2397d6c647be826c74aabf719c09e06f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2397d6c647be826c74aabf719c09e06f">&#9670;&#160;</a></span>G_producer_threads_queue</h2>
+<a id="a755e5e228176b821be59b4ce979c59a8" name="a755e5e228176b821be59b4ce979c59a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a755e5e228176b821be59b4ce979c59a8">&#9670;&#160;</a></span>G_producer_queue</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">struct <a class="el" href="structqueue__t.html">queue_t</a>* G_producer_threads_queue = NULL</td>
+          <td class="memname">struct <a class="el" href="structqueue__t.html">queue_t</a>* G_producer_queue = NULL</td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>queue for threads producing tables. </p>
 
 </div>
 </div>
@@ -522,6 +565,8 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>size of the table. </p>
+
 </div>
 </div>
 <a id="a92998a81b3bfe499169439a3c8c397f0" name="a92998a81b3bfe499169439a3c8c397f0"></a>
@@ -535,6 +580,8 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>An auxiliary matrix use to know which values are already been taken. </p>
 
 </div>
 </div>

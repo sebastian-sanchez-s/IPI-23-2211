@@ -39,24 +39,40 @@ void *listen_consumer(void *arg);
 void launch_consumer(int i);
 static int bad_neighbors(int value, int *arr, int j);
 
-#define NUM_PRODUCER 5 //! Producer threads
-#define NUM_CONSUMER 4 //! Consumer threads and processes
+#define NUM_PRODUCER 5 //!< Producer threads
+#define NUM_CONSUMER 4 //!< Consumer threads and processes
 
-pthread_t G_producer[NUM_PRODUCER];
-struct consumer_data_t G_consumer_data[NUM_CONSUMER];
-struct producer_param_t G_producer_params[NUM_PRODUCER];
+pthread_t G_producer[NUM_PRODUCER];                       //!< indexed Producer resources
+struct consumer_data_t G_consumer_data[NUM_CONSUMER];     //!< indexed consumer resources
+struct producer_param_t G_producer_params[NUM_PRODUCER];  //!< indexed producer parameters
 
-struct queue_t *G_producer_threads_queue = NULL;
-struct queue_t *G_consumer2producer_queue = NULL;
+struct queue_t *G_producer_queue = NULL; //!< queue for threads producing tables.
+struct queue_t *G_consumer_queue = NULL; //!< queue for processes consuming tables.
 
-int G_nrow, G_ncol, G_sz;
-int *G_min, *G_max;
-
-int *G_arr;
-int *G_tkn;
-
+int G_nrow; //!< rows of the table given as input.
+int G_ncol; //!< columns of the table given as input.
+int G_sz;   //!< size of the table.
+            
+//! A nrowsxncols matrix with the minimum value possible in each entry.
+int *G_min;
+//! A nrowsxncols matrix with the maximum value possible in each entry.
+int *G_max;
+//! A matrix use for main to store the seed.
+int *G_arr; 
+//! An auxiliary matrix use to know which values are already been taken.
+int *G_tkn; 
+            
+//! A structure to check if a table has a banned subtable.
 struct pair_list_t *G_banned_tables = NULL;
 
+/**
+ * Main - Set up the communication between Producer and Consumers.
+ *
+ * For consumers: it launch the processes as well as listening threads.
+ * When a consumers signals readyness, main put that consumer into the 
+ * G_consumer_queue.
+ *
+ **/
 int main(int argc, char *argv[])
 {
   PANIKON(argc < 3, "Usage: ./<executable> <ncol> <nrow>\n");
@@ -92,8 +108,8 @@ int main(int argc, char *argv[])
   MALLOC(G_arr, sizeof(int[NUM_PRODUCER][G_sz]));
   MALLOC(G_tkn, sizeof(int[NUM_PRODUCER][G_sz+1]));
 
-  G_producer_threads_queue  = queue_init(NUM_PRODUCER);
-  G_consumer2producer_queue = queue_init(NUM_CONSUMER);
+  G_producer_queue  = queue_init(NUM_PRODUCER);
+  G_consumer_queue = queue_init(NUM_CONSUMER);
 
   //
   // Build banned tables structure
@@ -115,14 +131,12 @@ int main(int argc, char *argv[])
   {
     G_producer_params[i].i = i;
     pthread_create(G_producer + i, NULL, thread_void, NULL);
-    queue_put(G_producer_threads_queue, i);
+    queue_put(G_producer_queue, i);
   }
 
   
   //
   // Execute producers 
-  //
-  // First we fill the minimal configuration up to min pos. 
   //
   int min_pos = G_ncol;
 
@@ -152,7 +166,7 @@ int main(int argc, char *argv[])
   {
     if( holder_i == min_pos )
     {
-      int i = queue_get(G_producer_threads_queue);
+      int i = queue_get(G_producer_queue);
 
       pthread_join(G_producer[i], NULL);
 
@@ -215,8 +229,8 @@ int main(int argc, char *argv[])
   free(holder_arr);
   free(holder_tkn);
 
-  queue_destroy(G_producer_threads_queue);
-  queue_destroy(G_consumer2producer_queue);
+  queue_destroy(G_producer_queue);
+  queue_destroy(G_consumer_queue);
 
   if( G_banned_tables != NULL ) pair_list_destroy(G_banned_tables);
 
@@ -237,7 +251,7 @@ void *listen_consumer(void *arg)
   int flag;
   while( fscanf(cdata->fs_r, "%i", &flag) != EOF)
   {
-    queue_put(G_consumer2producer_queue, i);
+    queue_put(G_consumer_queue, i);
   }
 
   return NULL;
