@@ -1,122 +1,68 @@
-# Contexto
+This repository contains code generated in the winter research 
+project IPI-23-2211 and computes thoese standard young tableux
+that represent outer sums.
 
-Este repositorio contiene código generado
-en la investigación de invierno IPI-23-2211
+### Usage
 
-La idea es computar aquellas tablas de Young que
-representan sumas exteriores.
+You must git clone the project and its submodules with:
+``sh
+git clone --recurse-submodules git@github.com:sebastian-sanchez-s/IPI-23-2211.git
+``
+A Dockerfile is available to avoid dependency issues. If you haven't installed
+docker yet, follow the instructions according to your platform in
+the [docker website](https://docs.docker.com/engine/install/).
+Once installed and running, start building the docker image with:
+``sh
+docker build -t <img_name> .
+``
+This command will download the required dependencies and compile the application.
+After the image has been built, you can launch it using:
+``sh
+docker run -it <img_name>
+``
+After this step you should find yourself with a shell prompt.
+In order to run the application for a table with C columns and R rows type:
+``sh
+./runseq.sh C R
+``
+This action will result in the creation of three separated directories,
+each containing files related to tables of distinct dimensions:
+- feasible/: feasible tableaux.
+- banned/: banned tables that are intrinsic to that file.
+- raw/: feasible and banned data generated in each thread.
 
-## Standard Young Tableux (SYT)
+### Algorithm
 
-Una tabla de Young en formato estándar consiste en
-un arreglo 2-dimensional de números
-de tal forma que cada fila y cada columna forme un
-arreglo creciente de izquierda a derecha y de arriba
-hacia abajo.
+#### Design Pattern
 
-Este software computa las tablas de Young y guarda en
-archivos separados cuales corresponden a sumas exteriores
-(prefijo P) y cuáles no (prefijo N).
+The application comprises two fundamental components: Producers and Consumers.
+Producers are responsible for constructing standard Young tableaux,
+while Consumers are tasked with determining the feasibility of a given table (or solving a table).
 
-#### Compilar y ejecutar 
-
-En linux (y posiblemente mac) hay que actualizar la ruta del linker
-```sh
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/cddlib/lib-src/.libs/
-```
-
-Compilar:
-```sh
-make
-```
-> Este comando crea el directorio `obj` con el ejecutable dentro.
-
-Ejecutar:
-```sh
-make run NCOL=<nro_columnas> NROW=<nro_filas>
-```
-> Este comando crea el directorio `raw` con los datos dentro y `banned` 
-> con las tablas malas que no tienen subtablas malas.
+#### Objects and File Dependencies
 
 
-#### Algoritmo
+#### Main
 
-El método consiste en partir de la configuración
-inicial rellenando por filas de izquierda a derecha con
-los números del `1` al `NM` donde `M` es la cantidad
-de columnas y `N` es la cantidad de filas.
+Main set up the communication between Producers and Consumers. 
 
-Ejemplo con `N=M=3`.
+Main-Consumer: Launches Consumers and continuously listens for their availability to solve a table. 
 
-```
-|1|2|3|
-|4|5|6|
-|7|8|9|
-```
+Main-Producer: Initiates Producers with a designated "seed", which represents a partially filled 
+table. Producers fill all possible tables based on this seed. 
 
-Cada celda consta de mínimos y máximos basales:
+#### Producer
 
-- **mínimos basales**: corresponde a la cantidad de celdas
-que están a la izquierda y arriba de la celda (inclusive).
-i.e. el área superior izquierda desde la celda.
-- **máximos basales**: corresponde a la cantidad de celdas que
-están a la derecha y abajo de la celda (inclusive) relativo
-al número maximo `NM`.
-i.e. `NM` menos el área inferior derecha.
+A Producer receives two parameters: a resource identifier index (implementation detail)
+and a starting position for building the table.
+1. A minimal configuration is computed, that is, for the given seed,
+the Producer fill the cells with the least available number for that position.
+2. Once a table is completed, the Producer checks if the table
+contains any subtable that was banned for smaller tables. If no banned subtable
+is found, the table is sent to a Consumer to solve it.
+3. At last, the Producer start going backwards in the table trying to replace the number 
+already inserted in a cell. If a replacement is found, it goes forwards again. This proccess
+continues till we cannot go any backwards (ie. it reached the position
+received as the second parameter).
 
-El algoritmo consiste en partir de la configuración inicial
-y devolverse. Al devolverse, se buscan los otros números
-que podrían estar en esa celda. De no haber disponibles
-se pasa al anterior y así. De haber un número disponible,
-se pone ese en la celda y se avanza a la siguiente.
-
-A modo de ejemplo:
-
-```
-|1|2|3|    |1|2|3|    |1|2|3|    |1|2|3|    |1|2|3|    |1|2|3|
-|4|5|6| -> |4|5|6| -> |4|5|6| -> |4|5|7| -> |4|5|7| -> |4|5|7| 
-|7|8|9|    |7|-|9|    |-|-|9|    |-|-|9|    |6|-|9|    |6|8|9|
-```
-
-Esto se repite hasta que no nos podamos seguir devolviendo.
-
-## Optimizaciones
-
-#### [:heavy_check_mark:] Hilos y procesos 
-
-Aquí se divide la tarea en productores y consumidores.
-
-Los productores son hilos y se encargan de generar tablas.
-
-Los consumidores son procesos y se encargan de resolver las tablas.
-
-La sincronización se hace a través de colas. Cuando un consumidor
-está listo se posiciona en la cola, mientras que cuando un productor
-está listo saca "un consumidor" de la cola y le envía la información
-necesaria para resolver la tabla.
-
-#### [✔️] Preanálisis
-
-Aquí se usa el hecho de que las tablas que tienen subtablas cuyo
-rango es una tabla mala, entonces la tabla grande es mala.
-
-La idea es guardar los rangos malos en un archivo. Luego, al ejecutar
-una tabla más grande se lee este archivo y se revisa si alguna subtabla
-está presente.
-
-Específicamente, las tablas se guardan en un árbol binario de búsqueda
-(en este caso, un avl) de manera encadenada, es decir, cada tabla
-tiene una "key" o "fingerprint" o un "hash" que se usa para posicionarle
-en el árbol. Si el árbol ya tiene esa key, entonces se encadena a la lista
-de tablas del nod que tiene la key. ie.
-```
-Nodo: 
-    key
-    tablas [lista de tablas que tienen la misma key]
-```
-
-#### [:x:] Rolling hash
-
-#### [:x:] Desigualdades parciales y matar ramas malas
-
-#### [✔️] Optimizar las forma de armar el rango
+#### Consumer

@@ -11,9 +11,6 @@ SRCS=main.c\
 
 OBJS=$(patsubst %.c,obj/%.o,$(SRCS))
 
-NCOLTEX=5
-STAMP=m$(NCOL)n$(NROW)
-
 all: $(OBJS) obj/consumer.o
 	$(CC) $(CF) $(WF) $(OBJS) -o obj/a.out
 
@@ -37,13 +34,3 @@ run: obj/a.out
 	./obj/a.out $(NCOL) $(NROW)
 	cat ./raw/Nc$(NCOL)r$(NROW)* > banned/c$(NCOL)r$(NROW)
 	cat ./raw/Pc$(NCOL)r$(NROW)* > feasible/c$(NCOL)r$(NROW)
-
-pdf: $(wildcard raw/$(STAMP)t*)
-	mkdir -p tex
-	mkdir -p pdf 
-	chmod +x csv2tex.sh
-	cat $^ | ./csv2tex.sh $(NCOLTEX) > tex/$(STAMP).tex
-	latexmk -quiet -pdf -auxdir="pdf/$(STAMP)" -outdir="pdf/$(STAMP)" tex/$(STAMP).tex
-
-cleanpdf: pdf/$(STAMP) tex/$(STAMP)
-	rm -r $^
