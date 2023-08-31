@@ -80,6 +80,7 @@ $(function() {
 <p>Compute tables and sent to consumer those that do not have banned subtables.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="common_8h_source.html">common.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="consumer_8h_source.html">consumer.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="queue_8h_source.html">queue.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="table_8h_source.html">table.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
@@ -87,18 +88,19 @@ Include dependency graph for producer.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="producer_8h__incl.png" border="0" usemap="#aproducer_8h" alt=""/></div>
 <map name="aproducer_8h" id="aproducer_8h">
-<area shape="rect" title="Compute tables and sent to consumer those that do not have banned subtables." alt="" coords="303,5,385,31"/>
-<area shape="rect" href="common_8h.html" title=" " alt="" coords="311,152,393,177"/>
-<area shape="rect" href="queue_8h.html" title="Simple thread&#45;safe circular queue." alt="" coords="310,79,378,104"/>
-<area shape="rect" href="table_8h.html" title="Table object interface." alt="" coords="403,79,464,104"/>
+<area shape="rect" title="Compute tables and sent to consumer those that do not have banned subtables." alt="" coords="236,5,319,31"/>
+<area shape="rect" href="common_8h.html" title=" " alt="" coords="271,152,353,177"/>
+<area shape="rect" href="consumer_8h.html" title=" " alt="" coords="84,152,175,177"/>
+<area shape="rect" href="queue_8h.html" title="Simple thread&#45;safe circular queue." alt="" coords="367,79,435,104"/>
+<area shape="rect" href="table_8h.html" title="Table object interface." alt="" coords="281,79,343,104"/>
 <area shape="rect" title=" " alt="" coords="5,225,67,251"/>
-<area shape="rect" title=" " alt="" coords="91,225,155,251"/>
-<area shape="rect" title=" " alt="" coords="179,225,243,251"/>
-<area shape="rect" title=" " alt="" coords="267,225,343,251"/>
-<area shape="rect" title=" " alt="" coords="367,225,430,251"/>
-<area shape="rect" title=" " alt="" coords="454,225,519,251"/>
-<area shape="rect" title=" " alt="" coords="543,225,611,251"/>
-<area shape="rect" title=" " alt="" coords="635,225,714,251"/>
+<area shape="rect" title=" " alt="" coords="192,225,256,251"/>
+<area shape="rect" title=" " alt="" coords="280,225,344,251"/>
+<area shape="rect" title=" " alt="" coords="91,225,167,251"/>
+<area shape="rect" title=" " alt="" coords="369,225,431,251"/>
+<area shape="rect" title=" " alt="" coords="455,225,521,251"/>
+<area shape="rect" title=" " alt="" coords="545,225,613,251"/>
+<area shape="rect" title=" " alt="" coords="637,225,715,251"/>
 </map>
 </div>
 </div><div class="textblock"><div class="dynheader">
@@ -179,16 +181,16 @@ Here is the call graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="5,55,112,80"/>
 <area shape="rect" href="queue_8c.html#acc6dacd325b4289c69f2d84c6f9c67d2" title=" " alt="" coords="210,5,293,31"/>
 <area shape="rect" href="queue_8c.html#ab52b18eb2f6040aef9f0cf5754483218" title=" " alt="" coords="210,55,293,80"/>
-<area shape="rect" href="table_8c.html#a72e2c17e80168f6aacd9a9dd54086f10" title=" " alt="" coords="160,104,343,129"/>
-<area shape="rect" href="table_8c.html#a5b5f673a5f64cae4205e21c83cc5c892" title=" " alt="" coords="391,97,571,137"/>
-<area shape="rect" href="table_8c.html#a305fcc1cc0375330f6ccf3ca8e8ef58b" title=" " alt="" coords="790,53,890,79"/>
-<area shape="rect" href="table_8c.html#a837bb228d760719968c5baba991279de" title=" " alt="" coords="803,103,877,128"/>
-<area shape="rect" href="table_8c.html#ad15ca84596b05c90f70dcd6a3eef6a60" title=" " alt="" coords="619,155,735,180"/>
+<area shape="rect" href="table_8c.html#a72e2c17e80168f6aacd9a9dd54086f10" title="returns the bottom&#45;right position if a banned subtable is found. &#45;1 otherwise." alt="" coords="160,104,343,129"/>
+<area shape="rect" href="table_8c.html#a5b5f673a5f64cae4205e21c83cc5c892" title="returns the bottom&#45;right position if a banned subtable of size (ncol,nrow) is found...." alt="" coords="391,97,571,137"/>
+<area shape="rect" href="table_8c.html#a305fcc1cc0375330f6ccf3ca8e8ef58b" title="destroy a table." alt="" coords="790,53,890,79"/>
+<area shape="rect" href="table_8c.html#a837bb228d760719968c5baba991279de" title="allocate a table with ncol columns and nrow rows." alt="" coords="803,103,877,128"/>
+<area shape="rect" href="table_8c.html#ad15ca84596b05c90f70dcd6a3eef6a60" title="returns 1 if table t is banned." alt="" coords="619,155,735,180"/>
 <area shape="rect" href="table_8c.html#a1527de56753a38dcfabc1fc6027beab4" title=" " alt="" coords="793,251,887,276"/>
-<area shape="rect" href="table_8c.html#ad54c0173f82c1ef64c8b94bb8b93defe" title=" " alt="" coords="783,300,897,325"/>
+<area shape="rect" href="table_8c.html#ad54c0173f82c1ef64c8b94bb8b93defe" title="computes the fingerprint of a table." alt="" coords="783,300,897,325"/>
 <area shape="rect" href="table_8c.html#adf94041c45154f65529938a1d13f0dd0" title=" " alt="" coords="789,152,891,177"/>
-<area shape="rect" href="table_8c.html#ac180ee03db942243600a52aa184d9376" title=" " alt="" coords="784,201,896,227"/>
-<area shape="rect" href="table_8c.html#a41aa4561c77acb02d621156583dff020" title=" " alt="" coords="945,152,1033,177"/>
+<area shape="rect" href="table_8c.html#ac180ee03db942243600a52aa184d9376" title="computes the relative order of the elements in table t." alt="" coords="784,201,896,227"/>
+<area shape="rect" href="table_8c.html#a41aa4561c77acb02d621156583dff020" title="returns 1 if t1 is equal to t2, both in dimensions and elements." alt="" coords="945,152,1033,177"/>
 </map>
 </div>
 <div class="dynheader">

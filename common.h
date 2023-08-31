@@ -21,6 +21,13 @@
  *  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
+/**
+ * @file commmon.h
+ * @author Sebastián Sánchez 
+ * @date Aug 2032
+ * @brief Common libraries (stdio, stdlib, etc), wrappers (malloc, etc) and utilities.
+ */
+
 #pragma once
 
 #include <stdio.h>
@@ -37,6 +44,9 @@
 #define NFMT "raw/Nc%ir%i"
 #define PFMT "raw/Pc%ir%i"
 
+// @brief common wrappers
+
+//! stop execution and display where it stopped. fprintf arguments can be given.
 #define PANIK(...) do {\
   fprintf(stderr,\
   "\n[PANIK]\n\
@@ -48,6 +58,7 @@
   exit(-1);\
 } while(0) 
 
+//! call PANIK when cond is true
 #define PANIKON(cond, ...) do {\
     if (cond) { PANIK(__VA_ARGS__); }\
 } while(0)
@@ -67,24 +78,18 @@
   PANIKON(ptr==NULL, "realloc() failed.");\
 } while(0)
 
+// @brief common operations
+
+//! print an integer array `a` of size `sz` to file `f` starting at index `si`.
 #define PRINTARR(f, a, si, sz) do {\
   for(int _k=si; _k<si+sz-1; _k++)\
   { fprintf(f, "%i ", a[_k]); }\
   fprintf(f, "%i\n", a[si+sz-1]);\
 } while(0)
 
+//! read an integer array `a` of size `sz` to file `f` starting at index `si`.
 #define READARR(f, a, si, sz) do {\
   for(int _k=si; _k<si+sz; _k++)\
   { if( fscanf(f, "%i", &a[_k]) == 1 ) continue; }\
 } while(0)
 
-/* ====================== */
-/* ==== Data Structs ==== */ 
-/* ====================== */
-struct consumer_data_t {
-  int i;
-  pid_t pid;
-  pthread_t listener;
-  FILE *fs_w;
-  FILE *fs_r;
-};

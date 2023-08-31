@@ -25,10 +25,11 @@
  * @file consumer.c
  * @author Sebastián Sánchez 
  * @date Aug 2032
- * @brief Decide if a table is feasible or not.
+ * @brief A consumer solves a table, that is, it determines whether a table is feasible or not.
  */
 
 #include "common.h"
+#include "consumer.h"
 
 #include "table.h"
 

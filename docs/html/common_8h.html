@@ -70,7 +70,6 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Data Structures</a> &#124;
 <a href="#define-members">Macros</a>  </div>
   <div class="headertitle"><div class="title">common.h File Reference</div></div>
 </div><!--header-->
@@ -105,7 +104,7 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="center"><img src="common_8h__dep__incl.png" border="0" usemap="#acommon_8hdep" alt=""/></div>
 <map name="acommon_8hdep" id="acommon_8hdep">
 <area shape="rect" title=" " alt="" coords="171,5,253,31"/>
-<area shape="rect" href="consumer_8c.html" title="Decide if a table is feasible or not." alt="" coords="23,152,113,177"/>
+<area shape="rect" href="consumer_8c.html" title="A consumer solves a table, that is, it determines whether a table is feasible or not." alt="" coords="23,152,113,177"/>
 <area shape="rect" href="main_8c.html" title="Set up communication channels and start threads." alt="" coords="148,225,209,251"/>
 <area shape="rect" href="producer_8h.html" title="Compute tables and sent to consumer those that do not have banned subtables." alt="" coords="137,152,220,177"/>
 <area shape="rect" href="queue_8c.html" title="Simple thread&#45;safe circular queue." alt="" coords="353,79,421,104"/>
@@ -117,11 +116,6 @@ This graph shows which files directly or indirectly include this file:</div>
 </div>
 <p><a href="common_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
-Data Structures</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structconsumer__data__t.html">consumer_data_t</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:a49bb97c81e380203b6f927111e671abd"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8h.html#a49bb97c81e380203b6f927111e671abd">BANNEDFMT</a>&#160;&#160;&#160;&quot;banned/c%ir%i&quot;</td></tr>
@@ -131,8 +125,10 @@ Macros</h2></td></tr>
 <tr class="memitem:a6ceb25aa5538633ea95addabccb268c3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8h.html#a6ceb25aa5538633ea95addabccb268c3">PFMT</a>&#160;&#160;&#160;&quot;raw/Pc%ir%i&quot;</td></tr>
 <tr class="separator:a6ceb25aa5538633ea95addabccb268c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a87eb6a100976d828b810a5365b1b3add"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8h.html#a87eb6a100976d828b810a5365b1b3add">PANIK</a>(...)</td></tr>
+<tr class="memdesc:a87eb6a100976d828b810a5365b1b3add"><td class="mdescLeft">&#160;</td><td class="mdescRight">stop execution and display where it stopped. fprintf arguments can be given.  <br /></td></tr>
 <tr class="separator:a87eb6a100976d828b810a5365b1b3add"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae6002474a5a6e640b11c4c8b6d03d732"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8h.html#ae6002474a5a6e640b11c4c8b6d03d732">PANIKON</a>(cond, ...)</td></tr>
+<tr class="memdesc:ae6002474a5a6e640b11c4c8b6d03d732"><td class="mdescLeft">&#160;</td><td class="mdescRight">call PANIK when cond is true  <br /></td></tr>
 <tr class="separator:ae6002474a5a6e640b11c4c8b6d03d732"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa6ad5c4a0a0b1dbbad0b884bd3facfeb"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8h.html#aa6ad5c4a0a0b1dbbad0b884bd3facfeb">MALLOC</a>(ptr,  sz)</td></tr>
 <tr class="separator:aa6ad5c4a0a0b1dbbad0b884bd3facfeb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -141,8 +137,10 @@ Macros</h2></td></tr>
 <tr class="memitem:a7c143421cee99a1b4577c49512b1f898"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8h.html#a7c143421cee99a1b4577c49512b1f898">REALLOC</a>(ptr,  sz)</td></tr>
 <tr class="separator:a7c143421cee99a1b4577c49512b1f898"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aee6ff4c9d4b062b0fbf03ef0290ccd19"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8h.html#aee6ff4c9d4b062b0fbf03ef0290ccd19">PRINTARR</a>(f,  a,  si,  sz)</td></tr>
+<tr class="memdesc:aee6ff4c9d4b062b0fbf03ef0290ccd19"><td class="mdescLeft">&#160;</td><td class="mdescRight">print an integer array <code>a</code> of size <code>sz</code> to file <code>f</code> starting at index <code>si</code>.  <br /></td></tr>
 <tr class="separator:aee6ff4c9d4b062b0fbf03ef0290ccd19"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4ca3cbeea0de25ac82ac3db7a82df07d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8h.html#a4ca3cbeea0de25ac82ac3db7a82df07d">READARR</a>(f,  a,  si,  sz)</td></tr>
+<tr class="memdesc:a4ca3cbeea0de25ac82ac3db7a82df07d"><td class="mdescLeft">&#160;</td><td class="mdescRight">read an integer array <code>a</code> of size <code>sz</code> to file <code>f</code> starting at index <code>si</code>.  <br /></td></tr>
 <tr class="separator:a4ca3cbeea0de25ac82ac3db7a82df07d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
@@ -267,6 +265,8 @@ Macros</h2></td></tr>
 <div class="line">  exit(-1);\</div>
 <div class="line">} <span class="keywordflow">while</span>(0)</div>
 </div><!-- fragment -->
+<p>stop execution and display where it stopped. fprintf arguments can be given. </p>
+
 </div>
 </div>
 <a id="ae6002474a5a6e640b11c4c8b6d03d732" name="ae6002474a5a6e640b11c4c8b6d03d732"></a>
@@ -297,8 +297,10 @@ Macros</h2></td></tr>
 <b>Value:</b><div class="fragment"><div class="line">    <span class="keywordflow">do</span> {\</div>
 <div class="line">    if (cond) { <a class="code hl_define" href="common_8h.html#a87eb6a100976d828b810a5365b1b3add">PANIK</a>(__VA_ARGS__); }\</div>
 <div class="line">} <span class="keywordflow">while</span>(0)</div>
-<div class="ttc" id="acommon_8h_html_a87eb6a100976d828b810a5365b1b3add"><div class="ttname"><a href="common_8h.html#a87eb6a100976d828b810a5365b1b3add">PANIK</a></div><div class="ttdeci">#define PANIK(...)</div><div class="ttdef"><b>Definition:</b> common.h:40</div></div>
+<div class="ttc" id="acommon_8h_html_a87eb6a100976d828b810a5365b1b3add"><div class="ttname"><a href="common_8h.html#a87eb6a100976d828b810a5365b1b3add">PANIK</a></div><div class="ttdeci">#define PANIK(...)</div><div class="ttdoc">stop execution and display where it stopped. fprintf arguments can be given.</div><div class="ttdef"><b>Definition:</b> common.h:50</div></div>
 </div><!-- fragment -->
+<p>call PANIK when cond is true </p>
+
 </div>
 </div>
 <a id="a6ceb25aa5538633ea95addabccb268c3" name="a6ceb25aa5538633ea95addabccb268c3"></a>
@@ -358,6 +360,8 @@ Macros</h2></td></tr>
 <div class="line">  fprintf(f, <span class="stringliteral">&quot;%i\n&quot;</span>, a[si+sz-1]);\</div>
 <div class="line">} <span class="keywordflow">while</span>(0)</div>
 </div><!-- fragment -->
+<p>print an integer array <code>a</code> of size <code>sz</code> to file <code>f</code> starting at index <code>si</code>. </p>
+
 </div>
 </div>
 <a id="a4ca3cbeea0de25ac82ac3db7a82df07d" name="a4ca3cbeea0de25ac82ac3db7a82df07d"></a>
@@ -402,6 +406,8 @@ Macros</h2></td></tr>
 <div class="line">  { <span class="keywordflow">if</span>( fscanf(f, <span class="stringliteral">&quot;%i&quot;</span>, &amp;a[_k]) == 1 ) <span class="keywordflow">continue</span>; }\</div>
 <div class="line">} <span class="keywordflow">while</span>(0)</div>
 </div><!-- fragment -->
+<p>read an integer array <code>a</code> of size <code>sz</code> to file <code>f</code> starting at index <code>si</code>. </p>
+
 </div>
 </div>
 <a id="a7c143421cee99a1b4577c49512b1f898" name="a7c143421cee99a1b4577c49512b1f898"></a>

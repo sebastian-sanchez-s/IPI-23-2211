@@ -75,19 +75,24 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="common_8h_source.html">common.h</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="consumer_8h_source.html">consumer.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Data Fields</h2></td></tr>
 <tr class="memitem:a30f24004e994f8607ef703f93185ed8b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structconsumer__data__t.html#a30f24004e994f8607ef703f93185ed8b">i</a></td></tr>
+<tr class="memdesc:a30f24004e994f8607ef703f93185ed8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">resource index.  <br /></td></tr>
 <tr class="separator:a30f24004e994f8607ef703f93185ed8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a985da4d8bad41944cfe3f1bffeca6e0b"><td class="memItemLeft" align="right" valign="top">pid_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structconsumer__data__t.html#a985da4d8bad41944cfe3f1bffeca6e0b">pid</a></td></tr>
+<tr class="memdesc:a985da4d8bad41944cfe3f1bffeca6e0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">proccess id.  <br /></td></tr>
 <tr class="separator:a985da4d8bad41944cfe3f1bffeca6e0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4e126eb030f4ee2606dddb25eba4c497"><td class="memItemLeft" align="right" valign="top">pthread_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structconsumer__data__t.html#a4e126eb030f4ee2606dddb25eba4c497">listener</a></td></tr>
+<tr class="memdesc:a4e126eb030f4ee2606dddb25eba4c497"><td class="mdescLeft">&#160;</td><td class="mdescRight">listener for proccess in main.  <br /></td></tr>
 <tr class="separator:a4e126eb030f4ee2606dddb25eba4c497"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a91788b6f8a5066750b164039537ea99f"><td class="memItemLeft" align="right" valign="top">FILE *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structconsumer__data__t.html#a91788b6f8a5066750b164039537ea99f">fs_w</a></td></tr>
+<tr class="memdesc:a91788b6f8a5066750b164039537ea99f"><td class="mdescLeft">&#160;</td><td class="mdescRight">file where consumer writes to.  <br /></td></tr>
 <tr class="separator:a91788b6f8a5066750b164039537ea99f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af8632198a7d551098b05b818436ae182"><td class="memItemLeft" align="right" valign="top">FILE *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structconsumer__data__t.html#af8632198a7d551098b05b818436ae182">fs_r</a></td></tr>
+<tr class="memdesc:af8632198a7d551098b05b818436ae182"><td class="mdescLeft">&#160;</td><td class="mdescRight">file where main writes to communicate with consumer.  <br /></td></tr>
 <tr class="separator:af8632198a7d551098b05b818436ae182"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Field Documentation</h2>
@@ -103,6 +108,8 @@ Data Fields</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>file where main writes to communicate with consumer. </p>
+
 </div>
 </div>
 <a id="a91788b6f8a5066750b164039537ea99f" name="a91788b6f8a5066750b164039537ea99f"></a>
@@ -116,6 +123,8 @@ Data Fields</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>file where consumer writes to. </p>
 
 </div>
 </div>
@@ -131,6 +140,8 @@ Data Fields</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>resource index. </p>
+
 </div>
 </div>
 <a id="a4e126eb030f4ee2606dddb25eba4c497" name="a4e126eb030f4ee2606dddb25eba4c497"></a>
@@ -144,6 +155,8 @@ Data Fields</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>listener for proccess in main. </p>
 
 </div>
 </div>
@@ -159,10 +172,12 @@ Data Fields</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>proccess id. </p>
+
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li><a class="el" href="common_8h_source.html">common.h</a></li>
+<li><a class="el" href="consumer_8h_source.html">consumer.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

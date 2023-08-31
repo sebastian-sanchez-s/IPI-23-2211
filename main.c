@@ -29,29 +29,26 @@
  */
 
 #include "common.h"
+#include "consumer.h"
 #include "queue.h"
 #include "producer.h"
 #include "table.h"
 
-/* = auxiliary functions = */
 void *thread_void();
 void *listen_consumer(void *arg);
 void launch_consumer(int i);
 static int bad_neighbors(int value, int *arr, int j);
 
-/* = producer consumer globals = */
-#define NUM_PRODUCER 5
-#define NUM_CONSUMER 4
+#define NUM_PRODUCER 5 //! Producer threads
+#define NUM_CONSUMER 4 //! Consumer threads and processes
 
 pthread_t G_producer[NUM_PRODUCER];
 struct consumer_data_t G_consumer_data[NUM_CONSUMER];
 struct producer_param_t G_producer_params[NUM_PRODUCER];
 
-/* = queue globals = */
 struct queue_t *G_producer_threads_queue = NULL;
 struct queue_t *G_consumer2producer_queue = NULL;
 
-/* = global auxialiry objects = */
 int G_nrow, G_ncol, G_sz;
 int *G_min, *G_max;
 

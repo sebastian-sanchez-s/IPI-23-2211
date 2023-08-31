@@ -31,6 +31,7 @@
 #pragma once
 
 #include "common.h"
+#include "consumer.h"
 #include "queue.h"
 #include "table.h"
 
