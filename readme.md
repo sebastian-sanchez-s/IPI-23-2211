@@ -66,3 +66,11 @@ continues till we cannot go any backwards (ie. it reached the position
 received as the second parameter).
 
 #### Consumer
+
+A consumer reads the tables to solve from stdin, after sending a signal to
+stdout (print 1). Once a table is read, the inequalities are build for the
+cddlib solver. If a table is feasible, its elements are saved in the
+`raw/PcNCOLrNROWtINDX` file, where (NCOL, NROW) is the dimension of the table
+and INDX is the consumer identification (each consumer writes to its own file).
+Non-feasible tables are saved in the same way, but replacing the initial P with
+an N.
