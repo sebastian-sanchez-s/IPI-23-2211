@@ -22,7 +22,7 @@
  ****************************************************************************/
 
 /**
- * @file producer.h
+ * @file producer.c
  * @author Sebastián Sánchez 
  * @date Aug 2032
  * @brief Compute tables and sent to consumer those that do not have banned
@@ -64,22 +64,23 @@ void* generate_table(void* param)
   int i = ((struct producer_param_t*) param)->i;
   int start_pos = ((struct producer_param_t*) param)->pos;
 
-  //! the table being filled.
+  // the table being filled.
   struct table_t syt = (struct table_t) {
     .c=G_ncol, .r=G_nrow, .sz=G_sz, .t=&G_arr[i*G_sz]
   };
 
-  //!< this keeps tracks of the values already present in the table.
+  // this keeps tracks of the values already present in the table.
   int *taken = &G_tkn[i*(G_sz+1)];
 
   //
   // Fill table with minimal configuration.
   //
-  int pos = start_pos+1; //!< start feeling the table from here on.
+  int pos = start_pos+1; // start filling the table from here on.
   int t = G_min[pos];
-  /** For each cell, attempt to put the minimum value possible 
+  /* 
+   * For each cell, attempt to put the minimum value possible 
    * that is not present and is valid.
-   * */
+   **/
   do {
     if (taken[t] || bad_neighbors(t, syt.t, pos))
     {
