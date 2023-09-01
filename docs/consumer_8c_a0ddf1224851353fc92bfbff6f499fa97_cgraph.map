@@ -1,8 +1,0 @@
-<map id="main" name="main">
-<area shape="rect" id="node1" title=" " alt="" coords="5,104,56,129"/>
-<area shape="rect" id="node2" href="$consumer_8c.html#a538c56b81daa496f9dbb353cacf47382" title=" " alt="" coords="110,5,221,31"/>
-<area shape="rect" id="node3" href="$table_8c.html#a305fcc1cc0375330f6ccf3ca8e8ef58b" title="destroy a table." alt="" coords="115,55,215,80"/>
-<area shape="rect" id="node4" href="$table_8c.html#a837bb228d760719968c5baba991279de" title="allocate a table with ncol columns and nrow rows." alt="" coords="128,104,203,129"/>
-<area shape="rect" id="node5" href="$table_8c.html#ab2d528601157ab59429e5454cd262a17" title="computes the index of the relative rank of the table t." alt="" coords="104,153,227,179"/>
-<area shape="rect" id="node6" href="$table_8c.html#ac180ee03db942243600a52aa184d9376" title="computes the relative order of the elements in table t." alt="" coords="109,203,221,228"/>
-</map>

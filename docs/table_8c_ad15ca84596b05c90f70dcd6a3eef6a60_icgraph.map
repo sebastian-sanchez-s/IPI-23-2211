@@ -1,7 +1,0 @@
-<map id="table_is_banned" name="table_is_banned">
-<area shape="rect" id="node1" title="returns 1 if table t is banned." alt="" coords="717,13,833,38"/>
-<area shape="rect" id="node2" href="$table_8c.html#a5b5f673a5f64cae4205e21c83cc5c892" title="returns the bottom&#45;right position if a banned subtable of size (ncol,nrow) is found...." alt="" coords="489,5,669,45"/>
-<area shape="rect" id="node3" href="$table_8c.html#a72e2c17e80168f6aacd9a9dd54086f10" title="returns the bottom&#45;right position if a banned subtable is found. &#45;1 otherwise." alt="" coords="259,13,441,38"/>
-<area shape="rect" id="node4" href="$producer_8c.html#aeae5fd41ee110b518c51f364a1b06cd7" title=" " alt="" coords="104,13,211,38"/>
-<area shape="rect" id="node5" href="$main_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="5,13,56,38"/>
-</map>
