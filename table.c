@@ -341,7 +341,7 @@ pair_list_append(struct pair_list_t *pl, int key, struct table_t *t)
 }
 
 #define FILENAMEBUFF 50
-#define ARRAYLENGTH 100
+#define ARRAYLENGTH 5*5*(2+1)
 void
 load_banned_from_file(struct pair_list_t *pl, int ncol, int nrow)
 {
@@ -379,8 +379,7 @@ load_banned_from_file(struct pair_list_t *pl, int ncol, int nrow)
 
 struct pair_list_t*
 load_banned_subtables(int ncol, int nrow)
-/* Load banned subtables that fit in the table of 
- * size (ncol, nrow).
+/* Load banned subtables that fit in the table of size (ncol, nrow).
  *
  * INPUT
  * ---------
@@ -388,7 +387,7 @@ load_banned_subtables(int ncol, int nrow)
  *
  * OUTPUT
  * ---------
- *  a sorted pair list
+ *  a sorted pair list.
  * */
 {
   struct pair_list_t *pl = pair_list_init(2000);
@@ -401,18 +400,7 @@ load_banned_subtables(int ncol, int nrow)
     }
   }
 
-  //fprintf(stderr, "FROM FILE\n");
-  //for(int i=0; i<pl->count; i++)
-  //{
-  //  fprintf(stderr, "KEY: %i\n", pl->pair_list[i].key);
-  //  struct table_list_t *tl = pl->pair_list[i].table_list;
-  //  for(int j=0; j<tl->count; j++)
-  //  {
-  //    PRINTARR(stderr, tl->list[j]->t, 0, tl->list[j]->sz);
-  //  }
-  //}
   pair_list_sort(pl);
-
   return pl;
 }
 
@@ -423,6 +411,8 @@ load_banned_subtables(int ncol, int nrow)
 int
 table_is_banned(struct pair_list_t *pl, struct table_t *t)
 /**
+ * Check if a table `t` is banned according to `pl`
+ *
  * INPUT
  * --------
  *  pl : pair list with banned subtables
@@ -453,6 +443,8 @@ _exit:;
 int
 table_find_banned_subtable(struct pair_list_t *pl, struct table_t *t)
 /**
+ * Find a banned subtable of `t`. Returns bottom-left position or -1.
+ * 
  * INPUT
  * --------
  *  - pl   : a pair list that contains banned tables and its fingerprints.
@@ -460,8 +452,7 @@ table_find_banned_subtable(struct pair_list_t *pl, struct table_t *t)
  *
  * OUPUT
  * --------
- *  index (bottom right) of the first banned subtable identified.
- *  -1 if no subtable is found.
+ *  index (bottom right) of the first banned subtable identified. -1 if no subtable is found.
  * */
 {
   if( pl==NULL ) return -1;
@@ -482,6 +473,9 @@ table_find_banned_subtable(struct pair_list_t *pl, struct table_t *t)
 int
 table_find_banned_subrank_of_dim(struct pair_list_t *pl, int ncol, int nrow, struct table_t *t)
 /**
+ * Check for every subtable of dimension (ncol,nrow) of table `t` for a banned subtable
+ * (based on its rank).
+ *
  * ALGORITHM
  * ---------
  * Each column for the submatrix must satisfy

@@ -35,9 +35,9 @@ each containing files related to tables of distinct dimensions:
 
 #### Design Pattern
 
-The application comprises two fundamental components: Producers and Consumers.
+This application has two fundamental components: Producers and Consumers.
 Producers are responsible for constructing standard Young tableaux,
-while Consumers are tasked with determining the feasibility of a given table (or solving a table).
+while Consumers are tasked with determining the feasibility of a given table, we call this solving a table.
 
 #### Objects and File Dependencies
 
@@ -62,8 +62,7 @@ contains any subtable that was banned for smaller tables. If no banned subtable
 is found, the table is sent to a Consumer to solve it.
 3. At last, the Producer start going backwards in the table trying to replace the number 
 already inserted in a cell. If a replacement is found, it goes forwards again. This proccess
-continues till we cannot go any backwards (ie. it reached the position
-received as the second parameter).
+continues till we cannot go any backwards (i.e. it reached the position received as the second parameter).
 
 #### Consumer
 
@@ -74,3 +73,29 @@ cddlib solver. If a table is feasible, its elements are saved in the
 and INDX is the consumer identification (each consumer writes to its own file).
 Non-feasible tables are saved in the same way, but replacing the initial P with
 an N.
+
+#### Concerns about implementation details
+
+* `tables`: A table is save as a one dimensional array in a row major order.
+* `load_banned_from_file`: Macro ARRAYLENGTH is used here to read data from files. Since it's a 
+fixed value, this macro should be modified according to the maximum expected line
+length i.e. for a table of size `sz=ncol*nrow` an ARRAYLENGTH of `sz*(max expected digits+1)`
+should be appropiate.
+
+#### Notation and Nomenclature
+
+Given a table `t` we call its rank the relative order of its elements,
+relabeling from 0. Effectively, in every cell we ask the question
+'how many cells are there lesser than me?'. i.e.
+```
+       |1|5|6|                |0|2|3|
+if t = |2|8|9|, then rank t = |1|4|5|
+```
+The linked rank of a table is a table of indexes of the ranked elements, that is,
+each cell `i` answers the question 'where in the original table is the i-ranked element?'
+.i.e
+```
+       |1|5|6|                       |0|3|1|
+if t = |2|8|9|, then linked rank t = |2|4|5|
+```
+The linked rank is useful when building the inequalities to solve the LP problem.

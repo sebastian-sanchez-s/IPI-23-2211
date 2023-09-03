@@ -65,15 +65,15 @@ int *G_tkn;
 //! A structure to check if a table has a banned subtable.
 struct pair_list_t *G_banned_tables = NULL;
 
+int main(int argc, char *argv[])
 /**
- * Main - Set up the communication between Producer and Consumers.
+ * Set up the communication between Producer and Consumers.
  *
  * For consumers: it launch the processes as well as listening threads.
  * When a consumers signals readyness, main put that consumer into the 
  * G_consumer_queue.
  *
  **/
-int main(int argc, char *argv[])
 {
   PANIKON(argc < 3, "Usage: ./<executable> <ncol> <nrow>\n");
   
