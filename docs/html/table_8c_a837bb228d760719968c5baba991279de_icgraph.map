@@ -1,0 +1,11 @@
+<map id="table_init" name="table_init">
+<area shape="rect" id="node1" title="allocate a table with ncol columns and nrow rows." alt="" coords="917,80,992,105"/>
+<area shape="rect" id="node2" href="$table_8c.html#a1e5c3d45a7f362849a400d74ebce3739" title=" " alt="" coords="717,5,869,31"/>
+<area shape="rect" id="node5" href="$consumer_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="768,55,819,80"/>
+<area shape="rect" id="node6" href="$table_8c.html#a5b5f673a5f64cae4205e21c83cc5c892" title="returns the bottom&#45;right position if a banned subtable of size (ncol,nrow) is found...." alt="" coords="489,98,669,138"/>
+<area shape="rect" id="node9" href="$table_8c.html#ad15ca84596b05c90f70dcd6a3eef6a60" title="returns 1 if table t is banned." alt="" coords="735,156,851,181"/>
+<area shape="rect" id="node3" href="$table_8c.html#af36ee7d1a3f09e952641a0644a0b169b" title="load banned subtables that fit in a table of dimension (ncol, nrows)." alt="" coords="271,39,429,64"/>
+<area shape="rect" id="node4" href="$main_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="5,76,56,101"/>
+<area shape="rect" id="node7" href="$table_8c.html#a72e2c17e80168f6aacd9a9dd54086f10" title="returns the bottom&#45;right position if a banned subtable is found. &#45;1 otherwise." alt="" coords="259,103,441,128"/>
+<area shape="rect" id="node8" href="$producer_8c.html#aeae5fd41ee110b518c51f364a1b06cd7" title=" " alt="" coords="104,101,211,127"/>
+</map>

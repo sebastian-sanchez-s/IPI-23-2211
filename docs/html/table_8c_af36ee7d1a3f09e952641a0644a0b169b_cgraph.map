@@ -1,0 +1,11 @@
+<map id="load_banned_subtables" name="load_banned_subtables">
+<area shape="rect" id="node1" title="load banned subtables that fit in a table of dimension (ncol, nrows)." alt="" coords="5,128,164,153"/>
+<area shape="rect" id="node2" href="$table_8c.html#a1e5c3d45a7f362849a400d74ebce3739" title=" " alt="" coords="212,79,364,104"/>
+<area shape="rect" id="node8" href="$table_8c.html#a3e7de1d8acd19449b6c71dafb51102b4" title="allocate a pair_list of size size." alt="" coords="243,128,333,153"/>
+<area shape="rect" id="node9" href="$table_8c.html#a95252df2c22725a5bb17f08b41f5e4e6" title=" " alt="" coords="239,177,337,203"/>
+<area shape="rect" id="node3" href="$table_8c.html#a246359e19f51f8aa3490cb78e3cd5a2b" title=" " alt="" coords="412,29,528,55"/>
+<area shape="rect" id="node6" href="$table_8c.html#ad54c0173f82c1ef64c8b94bb8b93defe" title="computes the fingerprint of a table." alt="" coords="413,79,527,104"/>
+<area shape="rect" id="node7" href="$table_8c.html#a837bb228d760719968c5baba991279de" title="allocate a table with ncol columns and nrow rows." alt="" coords="433,128,507,153"/>
+<area shape="rect" id="node4" href="$table_8c.html#aa97a1e2e5fdbe6535595e239f3c724aa" title=" " alt="" coords="576,5,699,31"/>
+<area shape="rect" id="node5" href="$table_8c.html#a2a2b259e833cc3a6eb587123135f035e" title=" " alt="" coords="588,55,687,80"/>
+</map>

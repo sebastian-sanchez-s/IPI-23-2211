@@ -76,7 +76,11 @@ an N.
 
 #### Concerns about implementation details
 
-* `tables`: A table is save as a one dimensional array in a row major order.
+* `main`: When launching consumer processes, a macro with the byte size of the parameters to send.
+This should be modified is neccessary.
+* `tables`: A table is stored as a one dimensional array in a row major order. The implementation
+favors this order, hence, a table with more rows than columns will run faster. Since the problem
+is symmetric, this preference shouldn't be a problem.
 * `load_banned_from_file`: Macro ARRAYLENGTH is used here to read data from files. Since it's a 
 fixed value, this macro should be modified according to the maximum expected line
 length i.e. for a table of size `sz=ncol*nrow` an ARRAYLENGTH of `sz*(max expected digits+1)`
@@ -99,3 +103,14 @@ each cell `i` answers the question 'where in the original table is the i-ranked 
 if t = |2|8|9|, then linked rank t = |2|4|5|
 ```
 The linked rank is useful when building the inequalities to solve the LP problem.
+
+
+## References
+
+> Mallows, Colin; Vanderbei, Robert J.(1-PRIN-ORF)
+> Which Young tableaux can represent an outer sum?.(English summary)
+> J. Integer Seq.18(2015), no.9, Article 15.9.1, 8 pp.
+
+> Castillo Federico; Labbé Jean-Phillipe.(2023).
+> Lineup polytopes of product of simplices.
+> arXiv:2306.00082

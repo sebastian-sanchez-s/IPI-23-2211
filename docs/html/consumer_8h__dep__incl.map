@@ -1,0 +1,7 @@
+<map id="consumer.h" name="consumer.h">
+<area shape="rect" id="node1" title="Data structures and headers use by consumer." alt="" coords="88,5,179,31"/>
+<area shape="rect" id="node2" href="$consumer_8c.html" title="A consumer solves a table, that is, it determines whether a table is feasible or not." alt="" coords="5,79,96,104"/>
+<area shape="rect" id="node3" href="$main_8c.html" title="Set up communication channels and start threads." alt="" coords="103,152,164,177"/>
+<area shape="rect" id="node4" href="$producer_8h.html" title="Compute tables and sent to consumer those that do not have banned subtables." alt="" coords="171,79,253,104"/>
+<area shape="rect" id="node5" href="$producer_8c.html" title="Compute tables and sent to consumer those that do not have banned subtables." alt="" coords="188,152,271,177"/>
+</map>
