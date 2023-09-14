@@ -40,8 +40,8 @@ extern int *G_min, *G_max;
 extern int *G_arr, *G_tkn;
 extern struct consumer_data_t G_consumer_data[];
 
-extern struct queue_t *G_producer_threads_queue;
-extern struct queue_t *G_consumer2producer_queue;
+extern struct queue_t *G_producer_queue;
+extern struct queue_t *G_consumer_queue;
 
 extern struct pair_list_t *G_banned_tables;
 

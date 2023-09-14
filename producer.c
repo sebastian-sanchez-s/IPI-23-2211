@@ -109,7 +109,7 @@ void* generate_table(void* param)
       int banpos = table_find_banned_subtable(G_banned_tables, &syt);
       if( banpos < 0 )
       {
-        int c = queue_get(G_consumer2producer_queue);
+        int c = queue_get(G_consumer_queue);
 
         // Send data to consumer 
         FILE *out = G_consumer_data[c].fs_w; 
@@ -152,7 +152,7 @@ void* generate_table(void* param)
   }
 
   // Make thread (and resources) available to compute another table with a seed.
-  queue_put(G_producer_threads_queue, i);
+  queue_put(G_producer_queue, i);
 
   return NULL;
 }
