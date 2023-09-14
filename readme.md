@@ -8,6 +8,12 @@ You must git clone the project and its submodules with:
 ```sh
 git clone --recurse-submodules git@github.com:sebastian-sanchez-s/IPI-23-2211.git
 ```
+You need to build the cdd library. Inside the cddlib subdirectory type:
+```sh
+./bootstrap
+./configure
+make
+```
 A Dockerfile is available to avoid dependency issues. If you haven't installed
 docker yet, follow the instructions according to your platform in
 the [docker website](https://docs.docker.com/engine/install/).
